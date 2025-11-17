@@ -5,17 +5,29 @@ combos={
     "folgas possíveis": ["","F","f"],
     "dispensas": ["SAE","DM","A","FE","OS","EX","CP","CM","CT","AM","AT","SAM","SAT","SAMP","","F","f","TO","NU"],
 
-    "Manhas": ["SM","SMP","SMSP","SMCP","SRM","SRMP","SRMSP","SRMCP","SAM","SAMSP","SAMP","SAMP.","SAMCP","M1","M1SP","M1P","M1P.","M1CP"],
+    "Manhas":["M","MSP","MP","MP.","MCP","MSAP","SIMSP","SIMP","SIM","M.","M.SP","M.P","M.P.","M1","M1SP","M1P","M1P.","M1CP","SRM","SRMP","SRMSP","SRMCP","SAM","SAMSP","SAMP","SAMP.","SAMCP"],
+    "M1": ["M1SP","M1P","M1P.","M1CP"],
     "M2":["M2","M2SP","M2P","M2P.","M2CP"],
-    "Tardes" : ["CT","ST","SAT","T","T2"],
-    "T1":["SRT","T1"],
+    "Tardes" : ["CT","ST","SAT","T","SIT","T.","T2","T2."],
+    "T1":["SRT","T1","T1."],
+    "T2":["T2","T2."],
     "Pernoites" : ["P","SMP","SRMP","MP","M1P","M2P","AMP","SAMP","TO/P","SIMP","MEXP","CMP","M.P","M1.P","M2.P","M.P.","M1.P.","M2.P.","P.","SMP","SRMP.","MP.","M1P.","M2P.""AMP.""SAMP.","TO/P.","RE/P.","MEXP.","SP","SRMSP","MSP","M1SP","M2SP","SAMSP",'SMSP',"TO/SP","AMSP","RE/SP","MEXSP","CMSP","M.SP"],
     
     "Folgas" : "Mais de 5 folgas seguidas",
     "Consecutivos": "Mais de 6 dias consecutivos",
 
+
     }
 
+carga_horaria_dos_turnos ={
+    "M":["M","MSP","MP","MP.","MCP","MSAP","SIMSP","SIMP","SIM","M.","M.SP","M.P","M.P."],
+    "M1": ["M1","M1SP","M1P","M1P.","M1CP","SRM","SRMP","SRMSP","SRMCP"],
+    "M2":["M2","M2SP","M2P","M2P.","M2CP"],
+    "T" : ["CT","ST","SAT","T","SIT","T."],
+    "T1":["SRT","T1","T1.","T2","T2."],
+    "P": ["P","SMP","SRMP","MP","M1P","M2P","AMP","SAMP","TO/P","SIMP","MEXP","CMP","M.P","M1.P","M2.P","M.P.","M1.P.","M2.P.","P.","SMP","SRMP.","MP.","M1P.","M2P.""AMP.""SAMP.","TO/P.","RE/P.","MEXP.","SP","SRMSP","MSP","M1SP","M2SP","SAMSP",'SMSP',"TO/SP","AMSP","RE/SP","MEXSP","CMSP","M.SP"],
+
+}
 
 
 erros=[]
@@ -56,7 +68,7 @@ def verificarFadiga(escala):
             dias_seguidos += 1
         else:
             dias_seguidos = 0
-        if i+1<len(turnos) :
+        if i+2<len(turnos) :
             if dias_seguidos == 5 and turno_atual in combos["Pernoites"] and turnos[i + 2] not in combos["dispensas"]:
                 sequencia="Consecutivos"
                 adicionarErros(escala,sequencia,dia)
