@@ -85,7 +85,7 @@ def executar_verificacao():
         carga_horaria = verificarCargaHoraria(esc)
         carga_horaria_maxima = esc.get("CHM", [0])
         chm_valor = carga_horaria_maxima[0] if carga_horaria_maxima else 0
-
+        print(chm_valor)
         # Verifica se a carga excede
         if carga_horaria > int(chm_valor):
             adicionarErros(esc, f"Carga Horária extrapolada {carga_horaria} de {carga_horaria_maxima} ", 1)
