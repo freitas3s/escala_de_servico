@@ -129,11 +129,11 @@ def mostrar_todos():
 
 st.title("📋 Sistema de Escala ")
 
-st.header("🔎 Pesquisa de Operador")
+st.header("🔎 Pesquisar Operador")
 col1, col2 = st.columns([3,1])
 
 with col1:
-    termo_pesquisa = st.text_input("Pesquisar operador:")
+    termo_pesquisa = st.text_input("")
 
 with col2:
     if st.button("🔎 Pesquisar"):
