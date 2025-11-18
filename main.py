@@ -1,205 +1,201 @@
-from verificarFadiga import verificarFadiga,erros,limparErros
-import tkinter as tk
-from tkinter import  messagebox, ttk
+from verificarFadiga import verificarFadiga,limparErros
 import json
 from copiarEscalaDrive import copiarEscala
+import streamlit as st
+import pandas as pd
+st.set_page_config(page_title="Escala", layout="wide")
+# Inicialização dos estados
+if "escalas" not in st.session_state:
+    st.session_state.escalas = []
+
+if "df_erros" not in st.session_state:
+    st.session_state.df_erros = pd.DataFrame(columns=["Nome", "Dia", "Erro"])
+
+def escalas_para_df(escalas):
+    
+    if not escalas:
+        return pd.DataFrame()
+
+    max_dias = max(len(e.get("Turnos", [])) for e in escalas)
+    cols = ["Nome"] + [str(i+1) for i in range(max_dias)] + ["CHM"]
+
+    linhas = []
+    for e in escalas:
+        linha = {"Nome": e.get("Nome", "")}
+
+        turnos = e.get("Turnos", []) or []
+        turnos = turnos + [""] * (max_dias - len(turnos))
+
+        for i, t in enumerate(turnos):
+            linha[str(i+1)] = "" if t is None else t
+
+        ch = e.get("Carga horaria mensal", e.get("Carga horaria mensal", ""))
+        if isinstance(ch, list):
+            ch = ch[0] if ch else ""
+
+        linha["CHM"] = ch
+        linhas.append(linha)
+
+    return pd.DataFrame(linhas, columns=cols)
 
 def carregar_arquivo():
-    copiarEscala()
+    copiarEscala()  # se necessário, você mantém essa função
     caminho = r"C:\Users\guije\Documents\GitHub\escala_de_servico\escala.json"
-    if not caminho:
-        return
+
     try:
         with open(caminho, 'r', encoding='utf-8') as f:
             dados = json.load(f)
+
         if isinstance(dados, dict):
             dados = [dados]
-        global escalas
-        escalas = dados
-
-        # 🧠 FORMATAÇÃO
-        texto_formatado = ""
-        for esc in escalas:
-            nome = esc.get("Nome", "Sem nome")
-            turnos = ", ".join(esc.get("Turnos", []))
-            carga_horaria_mensal = esc.get("Carga Horaria Mensal", "NA")
-            texto_formatado += f" {nome}\n {turnos}\n {carga_horaria_mensal}\n\n"
+    
+        st.session_state.escalas = dados
+        st.session_state.df_escalas = escalas_para_df(dados)
 
         mostrar_todos()
+
+        st.success("Escala carregada com sucesso!")
+
     except Exception as e:
-        messagebox.showerror("Erro", f"Falha ao carregar o arquivo:\n{e}")
+        st.error(f"Falha ao carregar arquivo: {e}")
 
 def editarTabela():
-    # monta lista com nomes na ordem exibida
-    ordem_exibida = []
+    import pandas as pd
 
-    for item in tree_escalas.get_children():
-        valores = tree_escalas.item(item)["values"]
-        nome = valores[0]
-        turnos = valores[1:-1]
-        carga_horaria= valores[-1]
-        ordem_exibida.append((nome, turnos,carga_horaria))
-
-    # atualiza apenas operadores que estão visíveis
-    for nome, turnos, carga_horaria in ordem_exibida:
-        for operador in escalas:
-            if operador["Nome"] == nome:
-                operador["Turnos"] = turnos
-                operador["CHM"] =carga_horaria
-                break
-    
-def executar_verificacao():
-    """Executa verificarFadiga() em todas as escalas e mostra os erros"""
-    if not escalas:
-        messagebox.showwarning("Aviso", "Nenhuma escala carregada!")
+    df = st.session_state.get("df_escalas", pd.DataFrame())
+    if df.empty:
+        st.session_state.escalas = []
         return
-    editarTabela()
-    #limpa a lista de erros 
+
+    col_dias = [c for c in df.columns if c not in ("Nome", "CHM")]
+    col_dias = sorted(col_dias, key=lambda x: int(x))
+
+    novas = []
+
+    for _, row in df.iterrows():
+        nome = row.get("Nome", "")
+
+        turnos = []
+        for c in col_dias:
+            v = row.get(c, "")
+            if pd.isna(v) or v is None:
+                v = ""
+            turnos.append(v)
+
+        ch = row.get("CHM", "")
+        if isinstance(ch, list):
+            ch = ch[0] if ch else ""
+
+        novas.append({
+            "Nome": nome,
+            "Turnos": turnos,
+            "CHM": ch
+        })
+
+    st.session_state.escalas = novas
+
+def executar_verificacao():
+    if "df_escalas" in st.session_state:
+        editarTabela()   # converte df -> listas em st.session_state.escalas
+
+    if not st.session_state.escalas:
+        st.warning("Nenhuma escala carregada")
+        return
+
     limparErros()
-    # processa todas as escalas e junta os resultados
-    for escala in escalas:
-        verificarFadiga(escala)
-
-    # limpa tabela
-    for item in tree.get_children():
-        tree.delete(item)
-
-    # exibe todos os erros retornados por adicionarErros()
-    for e in erros:
-        tree.insert("", "end", values=(e["Nome"], e["dia"], e["erro"]))
-
-    messagebox.showinfo(
-        "Concluído",
-        f"Foram encontrados {len(erros)} erros."
-    )
-    
+    for esc in st.session_state.escalas:
+        verificarFadiga(esc)
+    st.success(f"Foram encontrados {len(st.session_state.df_erros)} erros.")
 
 def atualizar_tabela_escalas(escalas):
-
-    for item in tree_escalas.get_children():
-        tree_escalas.delete(item)
-
     if not escalas:
+        st.session_state.df_escalas = pd.DataFrame()
         return
 
     max_dias = max(len(e["Turnos"]) for e in escalas)
     colunas = ["Nome"] + [f"{i+1}" for i in range(max_dias)] + ["CHM"]
-    tree_escalas["columns"] = colunas
-    tree_escalas["show"] = "headings"
 
-    for col in colunas:
-        tree_escalas.heading(col, text=col)
-        tree_escalas.column(col, width=60 if col != "Nome" else 140)
+    tabela = []
 
     for e in escalas:
-        nome = e["Nome"]
-        turnos = e["Turnos"]
-        carga_lista = e.get("Carga horaria mensal", [""])
-        carga = carga_lista[0] if carga_lista else ""
-        valores = [nome] + turnos + [""] * (max_dias - len(turnos))  + [carga]
-        tree_escalas.insert("", "end", values=valores)
+        linha = {"Nome": e["Nome"], "CHM": e.get("CHM", "")}
 
-def editar_celula(event):
-    item = tree_escalas.identify_row(event.y)
-    coluna = tree_escalas.identify_column(event.x)
+        # Preenche os turnos
+        for i, turno in enumerate(e["Turnos"]):
+            linha[str(i+1)] = turno
 
-    if not item or not coluna:
-        return
+        tabela.append(linha)
 
-    # posição da célula
-    x, y, largura, altura = tree_escalas.bbox(item, coluna)
+    df = pd.DataFrame(tabela)
+    df = df.reindex(columns=colunas)  # garante ordem e colunas obrigatórias
 
-    texto_atual = tree_escalas.set(item, coluna)
+    st.session_state.df_escalas = df
 
-    # cria um entry sobre a célula selecionada
-    entry = tk.Entry(tree_escalas)
-    entry.place(x=x, y=y, width=largura, height=altura)
-    entry.insert(0, texto_atual)
-    entry.focus()
+def pesquisar_funcionario(termo):
+    termo = termo.strip().lower()
 
-    # função que salva quando o usuário pressiona Enter
-    def salvar(event):
-        novo_valor = entry.get()
-        tree_escalas.set(item, coluna, novo_valor)
-        entry.destroy()
-
-    entry.bind("<Return>", salvar)
-    entry.bind("<FocusOut>", lambda e: entry.destroy())  # fecha se perder foco
-
-def pesquisar_funcionario():
-    """Filtra a tabela de escalas com base no nome pesquisado"""
-    termo = entrada_pesquisa.get().strip().lower()
     if not termo:
-        messagebox.showinfo("Pesquisa", "Digite o nome do operador.")
+        st.info("Digite o nome do operador.")
         mostrar_todos()
         return
 
-    filtradas = [e for e in escalas if termo in e["Nome"].lower()]
+    filtradas = [e for e in st.session_state.escalas if termo in e["Nome"].lower()]
 
     if not filtradas:
-        messagebox.showinfo("Pesquisa", f"Operador '{termo}' não encontrado.")
+        st.warning(f"Operador '{termo}' não encontrado.")
         return
 
-    # Atualiza a tabela com os resultados filtrados
     atualizar_tabela_escalas(filtradas)
 
-    # Quando o usuário apertar ENTER na caixa de pesquisa, repete a busca
-    # entrada_pesquisa.bind("<Return>", lambda event: atualizar_tabela_escalas(filtradas))
-
 def mostrar_todos():
-    """Restaura a exibição completa das escalas"""
-    atualizar_tabela_escalas(escalas)
-    entrada_pesquisa.delete(0, tk.END)
+    atualizar_tabela_escalas(st.session_state.escalas)
 
 
-# ========= INTERFACE =========
-janela = tk.Tk()
-janela.title("Verificador de Fadiga")
-janela.geometry("750x550")
+st.title("📋 Sistema de Escala ")
 
+st.header("🔎 Pesquisa de Operador")
+col1, col2 = st.columns([3,1])
 
-# Botões
+with col1:
+    termo_pesquisa = st.text_input("Pesquisar operador:")
 
+with col2:
+    if st.button("🔎 Pesquisar"):
+        pesquisar_funcionario(termo_pesquisa)
+        st.session_state.mostrar_tabela = True  # habilita tabela
 
-# === Campo de pesquisa ===
-campo_pesquisa = tk.Frame(janela)
-campo_pesquisa.pack(pady=10)
+    if st.button("📋 Mostrar Todos"):
+        mostrar_todos()
+        st.session_state.mostrar_tabela = True  # habilita tabela
 
-tk.Label(campo_pesquisa, text="Pesquisar operador:").grid(row=0, column=0, padx=5)
-entrada_pesquisa = tk.Entry(campo_pesquisa, width=40)
-entrada_pesquisa.grid(row=0, column=1, padx=5)
-entrada_pesquisa.bind("<Return>", lambda event: pesquisar_funcionario())
+st.markdown("---")
 
-tk.Button(campo_pesquisa, text="🔎 Pesquisar", command=pesquisar_funcionario).grid(row=0, column=2, padx=5)
-tk.Button(campo_pesquisa, text="📋 Mostrar Todos", command=mostrar_todos).grid(row=0, column=3, padx=5)
+st.header("📂 Escala Matriz")
 
-# Tabela das escalas
-tk.Label(janela, text="📋 Escala Matriz:").pack()
-campo_escalas = tk.Frame(janela)
-campo_escalas.pack(pady=5, fill="x")
+# Botão carregar
+if st.button("📂 Carregar Escala"):
+    carregar_arquivo()
+    st.session_state.mostrar_tabela = True
 
-tree_escalas = ttk.Treeview(campo_escalas)
-tree_escalas.pack(side="left", fill="x", expand=True)
+# Mostra tabela SOMENTE se existir e se estiver habilitada
+if st.session_state.get("mostrar_tabela", False):
+    if "df_escalas" in st.session_state and not st.session_state.df_escalas.empty:
+        df_editado = st.data_editor(
+            st.session_state.df_escalas,
+            num_rows="dynamic",
+            use_container_width=True
+        )
+        # Só atualiza aqui, evitando recursão infinita
+        st.session_state.df_escalas = df_editado
 
-scroll_escalas = ttk.Scrollbar(
-    campo_escalas, orient="horizontal", command=tree_escalas.xview
-)
-tree_escalas.configure(xscrollcommand=scroll_escalas.set)
-scroll_escalas.pack(side="bottom", fill="x")
-# ativa a edição com duplo clique
-tree_escalas.bind("<Double-1>", editar_celula)
+st.markdown("---")
 
-tk.Button(janela, text="📂 Carregar Escala", command=carregar_arquivo).pack(pady=4)
-# tk.Button(janela, text="💾 Salvar alterações", command=salvarAlteracoes).pack(pady=4)
-tk.Button(janela, text="🔍 Verificar Fadiga", command=executar_verificacao).pack(pady=4)
+st.header("⚠️ Verificação de Fadiga")
 
-# Tabela de erros
-cols = ("Nome", "Dia", "Erro")
-tree = ttk.Treeview(janela, columns=cols, show="headings", height=10)
-for col in cols:
-    tree.heading(col, text=col)
-    tree.column(col, width=220)
-tree.pack(pady=10, fill="x")
+if st.button("🔍 Verificar Fadiga"):
+    executar_verificacao()
 
-
-janela.mainloop()
+# Mostra erros
+if not st.session_state.df_erros.empty:
+    st.subheader("Erros Encontrados:")
+    st.dataframe(st.session_state.df_erros, use_container_width=True)

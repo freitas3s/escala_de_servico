@@ -1,33 +1,37 @@
 import gspread
 from google.oauth2.service_account import Credentials
 import re
-import json
+import streamlit as st
 
-SERVICE_ACCOUNT_FILE = r"C:\Users\guije\Documents\GitHub\escala_de_servico\healthy-keyword-475022-f9-87fd6c066547.json"
+# 1️⃣ Coloque o conteúdo do JSON da chave em um Secret chamado "GDRIVE_KEY"
+# Ex: st.secrets["GDRIVE_KEY"]
+
+SERVICE_ACCOUNT_INFO = st.secrets["GDRIVE_KEY"]
 
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/drive"
 ]
 
-creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+creds = Credentials.from_service_account_info(SERVICE_ACCOUNT_INFO, scopes=SCOPES)
 client = gspread.authorize(creds)
 
 planilha = client.open_by_key("1ry-PFpRg9iXwI2-YcSkP7pEsramIQfQjWSICSe434jA")
 aba = planilha.worksheet("ESCALA")
 
+# Leitura dos dados
 nomes_1 = aba.get("B52:B74")
-turnos_1 = aba.get("M52:AP74",pad_values=True)
+turnos_1 = aba.get("M52:AP74", pad_values=True)
 carga_horaria_mensal_1 = aba.get("AT52:AT74")
 
 ultima_linha = len(aba.col_values(1))
 nomes_2 = aba.get(f"B80:B{ultima_linha}")
-turnos_2 = aba.get(f"M80:AP{ultima_linha}",pad_values=True)
+turnos_2 = aba.get(f"M80:AP{ultima_linha}", pad_values=True)
 carga_horaria_mensal_2= aba.get(f"AT80:AT{ultima_linha}")
 
 nomes = nomes_1 + nomes_2
 turnos = turnos_1 + turnos_2
-carga_horaria_mensal= carga_horaria_mensal_1 + carga_horaria_mensal_2
+carga_horaria_mensal = carga_horaria_mensal_1 + carga_horaria_mensal_2
 
 escala = []
 
@@ -43,6 +47,6 @@ for i, nome_celula in enumerate(nomes):
             "Carga horaria mensal": carga_horaria_mensal_operador
         })
 
+# Não salva mais no disco, só retorna
 def copiarEscala():
-    with open("escala.json", "w", encoding="utf-8") as f:
-        json.dump(escala, f, ensure_ascii=False, indent=4)
+    return escala

@@ -1,9 +1,11 @@
+import streamlit as st
+import pandas as pd
 combos={
     "erro tarde": "Manhã após Tarde",
     "erro pernoite":"Necessário 24 horas de folga após Pernoite",
     
-    "folgas possíveis": ["","F","f"],
-    "dispensas": ["SAE","DM","A","FE","OS","EX","CP","CM","CT","AM","AT","SAM","SAT","SAMP","","F","f","TO","NU"],
+    "folgas possíveis": ['',"F","f",None,""],
+    "dispensas": ["SAE","DM","A","FE","OS","EX","CP","CM","CT","AM","AT","SAM","SAT","SAMP","","F","f","TO","NU",'',""],
 
     "Manhas":["M","MSP","MP","MP.","MCP","MSAP","SIMSP","SIMP","SIM","M.","M.SP","M.P","M.P.","M1","M1SP","M1P","M1P.","M1CP","SRM","SRMP","SRMSP","SRMCP","SAM","SAMSP","SAMP","SAMP.","SAMCP"],
     "M1": ["M1SP","M1P","M1P.","M1CP"],
@@ -29,75 +31,127 @@ carga_horaria_dos_turnos ={
 
 }
 
-
-erros=[]
 dia = 1
 
-def adicionarErros(escala,erro,dia):
+def adicionarErros(escala, erro_chave, dia):
+    nome = escala.get("Nome", "Sem nome")
+    descricao = combos.get(erro_chave, f"Erro não identificado: {erro_chave}")
+    if descricao is None:
+        descricao = f"Erro não identificado: {erro_chave}"
 
-    erros.append(
-        {
-            'Nome' : escala["Nome"],
-            'dia' : f'{dia}',
-            'erro' : combos[erro]
-        }
+    nova_linha = {"Nome": nome, "Dia": str(dia), "Erro": descricao}
+    st.session_state.df_erros = pd.concat(
+        [st.session_state.df_erros, pd.DataFrame([nova_linha])],
+        ignore_index=True,
     )
-    return erros
+
 def limparErros():
-    erros.clear()
+    st.session_state.df_erros = st.session_state.df_erros.iloc[0:0]
 
 def verificarFadiga(escala):
+    """
+    Versão corrigida e deduplicada da verificação de fadiga.
+    Retorna o DataFrame de erros atualizado em st.session_state.df_erros.
+    """
+    # Normaliza turnos (None / "" / nan -> 'f')
+    raw = escala.get("Turnos", []) or []
+    turnos = []
+    for t in raw:
+        if t is None:
+            turnos.append("f")
+        else:
+            s = str(t).strip()
+            if s == "" or s.lower() == "nan":
+                turnos.append("f")
+            else:
+                turnos.append(s)
 
-    turnos = escala["Turnos"]
+    n = len(turnos)
     dias_seguidos = 0
     folgas = 0
-    for i in range(len(turnos)):
+
+    # precomputar conjuntos (usar lower() se quiser normalizar)
+    dispensas = set(combos.get("dispensas", []))
+    folgas_possiveis = set(combos.get("folgas possíveis", []))
+    pernoites = set(combos.get("Pernoites", []))
+    manhas = set(combos.get("Manhas", []))
+    tardes = set(combos.get("Tardes", []))
+
+    # para evitar erros duplicados (mesmo tipo + mesmo dia)
+    seen_errors = set()
+
+    for i in range(n):
         dia = i + 1
-        turno_anterior =turnos[i-1]
-        turno_atual= turnos[i]
-        
-        
-        if i == len(turnos)-1:
-            turno_seguinte = None
-        else:
-            turno_seguinte = turnos[i+1]
-        
-        if turno_atual not in combos["dispensas"] and turno_atual not in combos["folgas possíveis"]:
+        turno_atual = turnos[i]
+        turno_anterior = turnos[i - 1] if i > 0 else ""
+        prox1 = turnos[i + 1] if i + 1 < n else ""
+        prox2 = turnos[i + 2] if i + 2 < n else ""
+
+        # dias consecutivos trabalhando
+        if (turno_atual not in dispensas) and (turno_atual not in folgas_possiveis):
             dias_seguidos += 1
-        elif turno_atual in combos["folgas possíveis"] and turno_anterior in combos["Pernoites"] :
+        elif (turno_atual in folgas_possiveis) and (turno_anterior in pernoites):
             dias_seguidos += 1
         else:
             dias_seguidos = 0
-        if i+2<len(turnos) :
-            if dias_seguidos == 5 and turno_atual in combos["Pernoites"] and turnos[i + 2] not in combos["dispensas"]:
-                sequencia="Consecutivos"
-                adicionarErros(escala,sequencia,dia)
-                dias_seguidos=0
-            
-            if (dias_seguidos > 5 and turno_anterior not in combos["Pernoites"] and (turnos[i+1] or turnos[i+2]) not in combos["dispensas"]) :
-                sequencia="Consecutivos"
-                adicionarErros(escala,sequencia,dia)
-                dias_seguidos=0
 
-        if turno_atual in combos["folgas possíveis"]:
+        # --- Detecta consecutivos (6 ou mais dias consecutivos) ---
+        # condição onde pernoite está presente e o dia +2 não é dispensa
+        if dias_seguidos == 5 and (turno_atual in pernoites) and (prox2 not in dispensas):
+            key = ("Consecutivos", dia)
+            if key not in seen_errors:
+                adicionarErros(escala, "Consecutivos", dia)
+                seen_errors.add(key)
+            dias_seguidos = 0
+
+        # condição geral: mais de 5 dias consecutivos (>=6),
+        # e próximos dois dias NÃO são dispensa -> gerar erro
+        if dias_seguidos > 5:
+            cond_prox_not_disp = (prox1 not in dispensas) and (prox2 not in dispensas)
+            if (turno_anterior not in pernoites) and cond_prox_not_disp:
+                key = ("Consecutivos", dia)
+                if key not in seen_errors:
+                    adicionarErros(escala, "Consecutivos", dia)
+                    seen_errors.add(key)
+                dias_seguidos = 0
+
+        # --- Folgas seguidas ---
+        if turno_atual in folgas_possiveis:
             folgas += 1
         else:
             folgas = 0
 
-        if folgas > 5 and turnos[i-6] not in combos["Pernoites"]:
-            sequencia="Folgas"
-            dia = i- 4
-            adicionarErros(escala,sequencia,dia)
+        if folgas > 5 and (i - 6) >= 0:
+            # verificar se dia de -6 não foi pernoite
+            if turnos[i - 6] not in pernoites:
+                day_to_report = max(1, i - 4)  # garanta >= 1
+                key = ("Folgas", day_to_report)
+                if key not in seen_errors:
+                    adicionarErros(escala, "Folgas", day_to_report)
+                    seen_errors.add(key)
             folgas = 0
-        #erros envolvendo pernoite
-        if turno_anterior in combos["Pernoites"] and turno_atual not in combos["dispensas"] or turno_anterior in combos["Pernoites"] and turno_seguinte in combos["Manhas"]:
-            erro= "erro pernoite"
-            adicionarErros(escala,erro,dia)
-        #erros envolvendo tarde
-        if turno_atual in combos["Tardes"] and turno_seguinte in combos["Manhas"]:
-            erro= "erro tarde"
-            adicionarErros(escala,erro,dia)
 
-        dia += 1
+        # --- Erros envolvendo pernoite ---
+        if (turno_anterior in pernoites) and ( (turno_atual not in dispensas) or (prox1 in manhas) ):
+            key = ("erro pernoite", dia)
+            if key not in seen_errors:
+                adicionarErros(escala, "erro pernoite", dia)
+                seen_errors.add(key)
 
-    return erros
+        # --- Erros tarde -> manhã ---
+        if (turno_atual in tardes) and (prox1 in manhas) and (prox1 != ""):
+            key = ("erro tarde", dia)
+            if key not in seen_errors:
+                adicionarErros(escala, "erro tarde", dia)
+                seen_errors.add(key)
+
+    return st.session_state.df_erros
+
+
+
+if __name__ == "__main__":
+    print(verificarFadiga({
+        "Nome": "Teste",
+        "Turnos": ["M","M","T","",None,"SMP"],
+        "CHM": "160"
+    }))
