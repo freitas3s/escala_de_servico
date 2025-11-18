@@ -125,7 +125,10 @@ def pesquisar_funcionario(termo):
         st.info("Digite o nome do operador.")
         mostrar_todos()
         return
-    filtradas = [e for e in st.session_state.escalas if termo in e["Nome"].lower()]
+    filtradas = [
+        e for e in st.session_state.escalas
+        if "Nome" in e and termo in str(e["Nome"]).lower()
+    ]
     if not filtradas:
         st.warning(f"Operador '{termo}' não encontrado.")
         return
