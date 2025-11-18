@@ -67,9 +67,8 @@ dia = 1
 
 def adicionarErros(escala, erro_chave, dia):
     nome = escala.get("Nome", "Sem nome")
-    descricao = combos.get(erro_chave, f"Erro não identificado: {erro_chave}")
-    if descricao is None:
-        descricao = f"Erro não identificado: {erro_chave}"
+    descricao = combos.get(erro_chave)
+    
 
     nova_linha = {"Nome": nome, "Dia": str(dia), "Erro": descricao}
     st.session_state.df_erros = pd.concat(
