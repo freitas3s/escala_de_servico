@@ -4,13 +4,13 @@ import streamlit as st
 import pandas as pd
 
 st.set_page_config(page_title="Escala", layout="wide")
-# Inicialização dos estados
+
 if "escalas" not in st.session_state:
     st.session_state.escalas = []
 
 if "df_erros" not in st.session_state:
     st.session_state.df_erros = pd.DataFrame(columns=["Nome", "Dia", "Erro"])
-    
+
 def escalas_para_df(escalas):
     """Transforma lista de escalas em DataFrame editável"""
     if not escalas:
@@ -136,8 +136,6 @@ def pesquisar_funcionario(termo):
 def mostrar_todos():
     st.session_state.df_escalas = escalas_para_df(st.session_state.escalas)
 
-
-
 st.title("📋 Escala RSP ")
 
 st.markdown("---")
@@ -163,7 +161,7 @@ st.header("Escala de Novembro")
 
 # Botão carregar
 if st.button("Carregar Escala Original"):
-    st.session_state.escalas = copiarEscala()
+    st.session_state.escalas = carregar_arquivo()
     st.session_state.mostrar_tabela = True
 
 # Mostra tabela SOMENTE se existir e se estiver habilitada
