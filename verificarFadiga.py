@@ -37,7 +37,7 @@ carga_horaria_dos_turnos ={
 
 def verificarCargaHoraria(escala):
     carga_horaria = 0
-    carga_horaria_maxima = escala["Carga horaria mensal"]
+    carga_horaria_maxima = escala["Carga horaria mensal"][0]
 
     for turno in escala["Turnos"]:
         if turno in carga_horaria_dos_turnos["M"]:
