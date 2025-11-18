@@ -1,4 +1,4 @@
-from verificarFadiga import verificarFadiga,limparErros,verificarCargaHoraria
+from verificarFadiga import verificarFadiga,limparErros,verificarCargaHoraria,adicionarErros
 from copiarEscalaDrive import copiarEscala
 import streamlit as st
 import pandas as pd
@@ -82,8 +82,15 @@ def executar_verificacao():
     limparErros()
     for esc in st.session_state.escalas:
         verificarFadiga(esc)
-        verificarCargaHoraria(esc)
-            
+        carga_horaria = verificarCargaHoraria(esc)
+        carga_horaria_maxima = esc.get("Carga horaria mensal", [0])
+        chm_valor = carga_horaria_maxima[0] if carga_horaria_maxima else 0
+
+        # Verifica se a carga excede
+        if carga_horaria > chm_valor:
+            adicionarErros(esc, f"Carga Horária extrapolada {carga_horaria} de {carga_horaria_maxima} ", 1)
+
+    
 
     st.success(f"Foram encontrados {len(st.session_state.df_erros)} erros.")
 
