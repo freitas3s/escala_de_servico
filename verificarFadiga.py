@@ -7,7 +7,7 @@ combos={
     "folgas possíveis": ['',"F","f",None,""],
     "dispensas": ["SAE","DM","A","FE","OS","EX","CP","CM","CT","AM","AT","SAM","SAT","SAMP","","F","f","TO","NU",'',""],
 
-    "Manhas":["M","MSP","MP","MP.","MCP","MSAP","SIMSP","SIMP","SIM","M.","M.SP","M.P","M.P.","M1","M1SP","M1P","M1P.","M1CP","SRM","SRMP","SRMSP","SRMCP","SAM","SAMSP","SAMP","SAMP.","SAMCP"],
+    "Manhas":["SAM","SAMSP","SAMP","SAMP.","SAMCP","M","MSP","MP","MP.","MCP","MSAP","SIMSP","SIMP","SIM","M.","M.SP","M.P","M.P.","SM","SMP","SMSP","SMCP,","M1","M1SP","M1P","M1P.","M1.","M1.SP","M1.P","M1.P.","M1CP","SRM","SRMP","SRMSP","SRMCP"],
     "M1": ["M1SP","M1P","M1P.","M1CP"],
     "M2":["M2","M2SP","M2P","M2P.","M2CP"],
     "Tardes" : ["CT","ST","SAT","T","SIT","T.","T2","T2."],
