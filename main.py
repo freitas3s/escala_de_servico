@@ -164,7 +164,7 @@ st.header("Escala de Novembro")
 # Botão carregar
 if st.button("Carregar Escala Original"):
     st.session_state.escalas = copiarEscala()
-st.session_state.mostrar_tabela = True
+    st.session_state.mostrar_tabela = True
 
 # Mostra tabela SOMENTE se existir e se estiver habilitada
 if st.session_state.get("mostrar_tabela", False):
