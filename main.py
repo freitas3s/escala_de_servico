@@ -123,6 +123,7 @@ def pesquisar_funcionario(termo):
         st.info("Digite o nome do operador.")
         mostrar_todos()
         return
+    
     filtradas = [e for e in st.session_state.escalas if termo in e["Nome"].lower()]
     if not filtradas:
         st.warning(f"Operador '{termo}' não encontrado.")
@@ -135,6 +136,7 @@ def mostrar_todos():
 
 st.title(" Escalas RSP ")
 
+st.session_state.escalas = carregar_arquivo()
 st.header("🔎 Pesquisa de Operador")
 col1, col2 = st.columns([3,1])
 
@@ -155,7 +157,7 @@ st.markdown("---")
 st.header(" Escala ")
 
 # Botão carregar
-st.session_state.escalas = carregar_arquivo()
+
 st.session_state.mostrar_tabela = True
 
 # Mostra tabela SOMENTE se existir e se estiver habilitada
