@@ -5,7 +5,12 @@ import streamlit as st
 import pandas as pd
 st.set_page_config(page_title="Escala", layout="wide")
 # Inicialização dos estados
+if "escalas" not in st.session_state:
+    st.session_state.escalas = []
 
+if "df_erros" not in st.session_state:
+    st.session_state.df_erros = pd.DataFrame(columns=["Nome", "Dia", "Erro"])
+    
 def escalas_para_df(escalas):
     """Transforma lista de escalas em DataFrame editável"""
     if not escalas:
@@ -121,13 +126,10 @@ def pesquisar_funcionario(termo):
 def mostrar_todos():
     st.session_state.df_escalas = escalas_para_df(st.session_state.escalas)
 
-if "escalas" not in st.session_state:
-    st.session_state.escalas = []
-    carregar_arquivo()
-if "df_erros" not in st.session_state:
-    st.session_state.df_erros = pd.DataFrame(columns=["Nome", "Dia", "Erro"])
 
-st.title("📋 Sistema de Escala ")
+st.title("📋 Escala RSP ")
+
+st.markdown("---")
 
 st.header("🔎 Pesquisar Operador")
 col1, col2 = st.columns([3,1])
@@ -140,16 +142,16 @@ with col2:
         pesquisar_funcionario(termo_pesquisa)
         st.session_state.mostrar_tabela = True  # habilita tabela
 
-    if st.button("📋 Mostrar Todos"):
+    if st.button("Listar Todos"):
         mostrar_todos()
         st.session_state.mostrar_tabela = True  # habilita tabela
 
 st.markdown("---")
 
-st.header("📂 Escala Matriz")
+st.header("Escala de Novembro")
 
 # Botão carregar
-if st.button("Carregar Escala"):
+if st.button("Carregar Escala Original"):
     st.session_state.escalas = copiarEscala()
     st.session_state.mostrar_tabela = True
 
@@ -164,11 +166,7 @@ if st.session_state.get("mostrar_tabela", False):
         # Só atualiza aqui, evitando recursão infinita
         st.session_state.df_escalas = df_editado
 
-st.markdown("---")
-
-# Verificação de fadiga
-st.header("⚠️ Verificação de Fadiga")
-if st.button("🔍 Verificar Fadiga"):
+if st.button(" Verificar Fadiga"):
     executar_verificacao()
 
 if not st.session_state.df_erros.empty:
