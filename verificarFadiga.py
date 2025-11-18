@@ -65,11 +65,9 @@ def verificarCargaHoraria(escala):
 
 dia = 1
 
-def adicionarErros(escala, erro_chave, dia):
+def adicionarErros(escala, erro, dia):
     nome = escala.get("Nome", "Sem nome")
-    descricao = combos.get(erro_chave)
-    
-
+    descricao = erro
     nova_linha = {"Nome": nome, "Dia": str(dia), "Erro": descricao}
     st.session_state.df_erros = pd.concat(
         [st.session_state.df_erros, pd.DataFrame([nova_linha])],
@@ -130,8 +128,9 @@ def verificarFadiga(escala):
         # condição onde pernoite está presente e o dia +2 não é dispensa
         if dias_seguidos == 5 and (turno_atual in pernoites) and (prox2 not in dispensas):
             key = ("Consecutivos", dia)
+            erro = combos["Consecutivos"]
             if key not in seen_errors:
-                adicionarErros(escala, "Consecutivos", dia)
+                adicionarErros(escala, erro, dia)
                 seen_errors.add(key)
             dias_seguidos = 0
 
@@ -141,8 +140,9 @@ def verificarFadiga(escala):
             cond_prox_not_disp = (prox1 not in dispensas) and (prox2 not in dispensas)
             if (turno_anterior not in pernoites) and cond_prox_not_disp:
                 key = ("Consecutivos", dia)
+                erro = combos["Consecutivos"]
                 if key not in seen_errors:
-                    adicionarErros(escala, "Consecutivos", dia)
+                    adicionarErros(escala, erro, dia)
                     seen_errors.add(key)
                 dias_seguidos = 0
 
@@ -157,23 +157,26 @@ def verificarFadiga(escala):
             if turnos[i - 6] not in pernoites:
                 day_to_report = max(1, i - 4)  # garanta >= 1
                 key = ("Folgas", day_to_report)
+                erro = combos["Folgas"]
                 if key not in seen_errors:
-                    adicionarErros(escala, "Folgas", day_to_report)
+                    adicionarErros(escala, erro, day_to_report)
                     seen_errors.add(key)
             folgas = 0
 
         # --- Erros envolvendo pernoite ---
         if (turno_anterior in pernoites) and ( (turno_atual not in dispensas) or (prox1 in manhas) ):
             key = ("erro pernoite", dia)
+            erro = combos["erro pernoite"]
             if key not in seen_errors:
-                adicionarErros(escala, "erro pernoite", dia)
+                adicionarErros(escala, erro, dia)
                 seen_errors.add(key)
 
         # --- Erros tarde -> manhã ---
         if (turno_atual in tardes) and (prox1 in manhas) and (prox1 != ""):
             key = ("erro tarde", dia)
+            erro = combos["erro tarde"]
             if key not in seen_errors:
-                adicionarErros(escala, "erro tarde", dia)
+                adicionarErros(escala, erro, dia)
                 seen_errors.add(key)
 
     return st.session_state.df_erros
