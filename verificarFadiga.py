@@ -22,14 +22,81 @@ combos={
     }
 
 carga_horaria_dos_turnos ={
-    "M":["M","MSP","MP","MP.","MCP","MSAP","SIMSP","SIMP","SIM","M.","M.SP","M.P","M.P."],
-    "M1": ["M1","M1SP","M1P","M1P.","M1CP","SRM","SRMP","SRMSP","SRMCP"],
-    "M2":["M2","M2SP","M2P","M2P.","M2CP"],
-    "T" : ["CT","ST","SAT","T","SIT","T."],
-    "T1":["SRT","T1","T1.","T2","T2."],
-    "P": ["P","SMP","SRMP","MP","M1P","M2P","AMP","SAMP","TO/P","SIMP","MEXP","CMP","M.P","M1.P","M2.P","M.P.","M1.P.","M2.P.","P.","SMP","SRMP.","MP.","M1P.","M2P.""AMP.""SAMP.","TO/P.","RE/P.","MEXP.","SP","SRMSP","MSP","M1SP","M2SP","SAMSP",'SMSP',"TO/SP","AMSP","RE/SP","MEXSP","CMSP","M.SP"],
-
+    "M": {"SAM","SAMSP","SAMP","SAMP.","SAMCP","M","MSP","MP","MP.","MCP","MSAP","SIMSP","SIMP","SIM","M.","M.SP","M.P","M.P.","SM","SMP","SMSP","SMCP,"},#7.75
+    "M1": {"M1","M1SP","M1P","M1P.","M1.","M1.SP","M1.P","M1.P.","M1CP","SRM","SRMP","SRMSP","SRMCP"},#5.75
+    "M2":{"M2","M2SP","M2P","M2P.","M2CP","M2.","M2.SP","M2.P","M2.P."}, #6.0
+    "AM": {"AM","AMSP","AMP","AMP.","AMCP"},#2.58
+    "T" : {"CT","ST","SAT","T","SIT","T."}, #9.25
+    "AT" : {"AT"}, #3.08
+    "SRT": {"SRT"}, #7.00
+    "RT": {"SRT","T1","T1.","T2","T2."}, #7.25
+    "P": {"P","SMP","SRMP","MP","M1P","M2P","AMP","SAMP","TO/P","SIMP","MEXP","CMP","M.P","M1.P","M2.P","M.P.","M1.P.","M2.P.","P.","SMP","SRMP.","MP.","M1P.","M2P.""AMP.""SAMP.","TO/P.","RE/P.","MEXP.","SP","SRMSP","MSP","M1SP","M2SP","SAMSP",'SMSP',"TO/SP","AMSP","RE/SP","MEXSP","CMSP","M.SP"},
+    "MEX" : {"MEX","MC","MSO","MEXSP","MEXP","RE/MEX","MEXCP","RE","RE/SP","RE/P","RE/CP"}, #4.00
+    "Cameras": {"CM","CMP","CMSP","CMCP","M.CP","CT","CP","SRMCP","MCP","M1CP","M2CP","SAMCP","SMCP","TO/CP","AMCP","RE/CP","MEXCP","CMCP","M.CP","M1.CP","M2.CP","EX","C","SO","RE/EX","EXP"}#8.00
 }
+escalas = {"Turnos": [
+            "",
+            "",
+            "",
+            "T1",
+            "M1P",
+            "",
+            "T",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "T",
+            "AT",
+            "T",
+            "T",
+            "T",
+            "",
+            "F",
+            "T",
+            "T",
+            "T1",
+            "M2",
+            "T",
+            "",
+            "MP",
+            "",
+            "T",
+            "T1",
+            "P"
+        ]}
+
+def verificarCargaHoraria(escala):
+    carga_horaria = 0
+    carga_horaria_maxima = escala["Carga horaria mensal"]
+
+    for turno in escala["Turnos"]:
+        if turno in carga_horaria_dos_turnos["M"]:
+            carga_horaria += 7.75
+        elif turno in carga_horaria_dos_turnos["M1"]:
+            carga_horaria += 5.75
+        elif turno in carga_horaria_dos_turnos["M2"]:
+            carga_horaria += 6.00
+        elif turno in carga_horaria_dos_turnos["AM"]:
+            carga_horaria += 2.58
+        elif turno in carga_horaria_dos_turnos["T"]:
+            carga_horaria += 9.25
+        elif turno in carga_horaria_dos_turnos["AT"]:
+            carga_horaria += 3.08
+        elif turno in carga_horaria_dos_turnos["SRT"]:
+            carga_horaria += 7.00
+        elif turno in carga_horaria_dos_turnos["RT"]:
+            carga_horaria += 7.25 
+        elif turno in carga_horaria_dos_turnos["MEX"]:
+            carga_horaria += 4.00
+        elif turno in carga_horaria_dos_turnos["Cameras"]:
+            carga_horaria += 8.00 
+        if turno in carga_horaria_dos_turnos["P"]:
+            carga_horaria += 7.75
+        if carga_horaria> carga_horaria_maxima:
+            adicionarErros(escala, f"Carga Horária extrapolada {carga_horaria} de {carga_horaria_maxima} ", 1)
+    return carga_horaria
 
 dia = 1
 
@@ -150,8 +217,4 @@ def verificarFadiga(escala):
 
 
 if __name__ == "__main__":
-    print(verificarFadiga({
-        "Nome": "Teste",
-        "Turnos": ["M","M","T","",None,"SMP"],
-        "CHM": "160"
-    }))
+    print(verificarCargaHoraria(escalas))

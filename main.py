@@ -1,5 +1,4 @@
-from verificarFadiga import verificarFadiga,limparErros
-import json
+from verificarFadiga import verificarFadiga,limparErros,verificarCargaHoraria
 from copiarEscalaDrive import copiarEscala
 import streamlit as st
 import pandas as pd
@@ -10,57 +9,35 @@ if "escalas" not in st.session_state:
 
 if "df_erros" not in st.session_state:
     st.session_state.df_erros = pd.DataFrame(columns=["Nome", "Dia", "Erro"])
-
-def escalas_para_df(escalas):
     
+def escalas_para_df(escalas):
+    """Transforma lista de escalas em DataFrame editável"""
     if not escalas:
         return pd.DataFrame()
+    
+    max_dias = max(len(e["Turnos"]) for e in escalas)
+    colunas = ["Nome"] + [f"{i+1}" for i in range(max_dias)] + ["CHM"]
 
-    max_dias = max(len(e.get("Turnos", [])) for e in escalas)
-    cols = ["Nome"] + [str(i+1) for i in range(max_dias)] + ["CHM"]
-
-    linhas = []
+    tabela = []
     for e in escalas:
-        linha = {"Nome": e.get("Nome", "")}
-
-        turnos = e.get("Turnos", []) or []
-        turnos = turnos + [""] * (max_dias - len(turnos))
-
-        for i, t in enumerate(turnos):
-            linha[str(i+1)] = "" if t is None else t
-
-        ch = e.get("Carga horaria mensal", e.get("Carga horaria mensal", ""))
-        if isinstance(ch, list):
-            ch = ch[0] if ch else ""
-
-        linha["CHM"] = ch
-        linhas.append(linha)
-
-    return pd.DataFrame(linhas, columns=cols)
+        linha = {"Nome": e["Nome"], "CHM": e.get("Carga horaria mensal", [""])[0]}
+        for i, turno in enumerate(e["Turnos"]):
+            linha[str(i+1)] = turno
+        tabela.append(linha)
+    df = pd.DataFrame(tabela)
+    df = df.reindex(columns=colunas)
+    return df
 
 def carregar_arquivo():
-    copiarEscala()  # se necessário, você mantém essa função
-    caminho = r"C:\Users\guije\Documents\GitHub\escala_de_servico\escala.json"
-
     try:
-        with open(caminho, 'r', encoding='utf-8') as f:
-            dados = json.load(f)
-
-        if isinstance(dados, dict):
-            dados = [dados]
-    
+        dados = copiarEscala()
         st.session_state.escalas = dados
         st.session_state.df_escalas = escalas_para_df(dados)
-
-        mostrar_todos()
-
         st.success("Escala carregada com sucesso!")
-
     except Exception as e:
-        st.error(f"Falha ao carregar arquivo: {e}")
+        st.error(f"Falha ao carregar a escala: {e}")
 
 def editarTabela():
-    import pandas as pd
 
     df = st.session_state.get("df_escalas", pd.DataFrame())
     if df.empty:
@@ -105,6 +82,9 @@ def executar_verificacao():
     limparErros()
     for esc in st.session_state.escalas:
         verificarFadiga(esc)
+        verificarCargaHoraria(esc)
+            
+
     st.success(f"Foram encontrados {len(st.session_state.df_erros)} erros.")
 
 def atualizar_tabela_escalas(escalas):
@@ -133,22 +113,18 @@ def atualizar_tabela_escalas(escalas):
 
 def pesquisar_funcionario(termo):
     termo = termo.strip().lower()
-
     if not termo:
         st.info("Digite o nome do operador.")
         mostrar_todos()
         return
-
     filtradas = [e for e in st.session_state.escalas if termo in e["Nome"].lower()]
-
     if not filtradas:
         st.warning(f"Operador '{termo}' não encontrado.")
         return
-
-    atualizar_tabela_escalas(filtradas)
+    st.session_state.df_escalas = escalas_para_df(filtradas)
 
 def mostrar_todos():
-    atualizar_tabela_escalas(st.session_state.escalas)
+    st.session_state.df_escalas = escalas_para_df(st.session_state.escalas)
 
 
 st.title("📋 Sistema de Escala ")
@@ -170,11 +146,11 @@ with col2:
 
 st.markdown("---")
 
-st.header("📂 Escala Matriz")
+st.header("📂 Escala ")
 
 # Botão carregar
-if st.button("📂 Carregar Escala"):
-    carregar_arquivo()
+if st.button("Carregar Escala"):
+    st.session_state.escalas = carregar_arquivo()
     st.session_state.mostrar_tabela = True
 
 # Mostra tabela SOMENTE se existir e se estiver habilitada
@@ -190,12 +166,11 @@ if st.session_state.get("mostrar_tabela", False):
 
 st.markdown("---")
 
+# Verificação de fadiga
 st.header("⚠️ Verificação de Fadiga")
-
 if st.button("🔍 Verificar Fadiga"):
     executar_verificacao()
 
-# Mostra erros
 if not st.session_state.df_erros.empty:
     st.subheader("Erros Encontrados:")
     st.dataframe(st.session_state.df_erros, use_container_width=True)
