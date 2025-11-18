@@ -34,38 +34,6 @@ carga_horaria_dos_turnos ={
     "MEX" : {"MEX","MC","MSO","MEXSP","MEXP","RE/MEX","MEXCP","RE","RE/SP","RE/P","RE/CP"}, #4.00
     "Cameras": {"CM","CMP","CMSP","CMCP","M.CP","CT","CP","SRMCP","MCP","M1CP","M2CP","SAMCP","SMCP","TO/CP","AMCP","RE/CP","MEXCP","CMCP","M.CP","M1.CP","M2.CP","EX","C","SO","RE/EX","EXP"}#8.00
 }
-escalas = {"Turnos": [
-            "",
-            "",
-            "",
-            "T1",
-            "M1P",
-            "",
-            "T",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "T",
-            "AT",
-            "T",
-            "T",
-            "T",
-            "",
-            "F",
-            "T",
-            "T",
-            "T1",
-            "M2",
-            "T",
-            "",
-            "MP",
-            "",
-            "T",
-            "T1",
-            "P"
-        ]}
 
 def verificarCargaHoraria(escala):
     carga_horaria = 0
@@ -213,8 +181,3 @@ def verificarFadiga(escala):
                 seen_errors.add(key)
 
     return st.session_state.df_erros
-
-
-
-if __name__ == "__main__":
-    print(verificarCargaHoraria(escalas))

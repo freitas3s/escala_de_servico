@@ -127,31 +127,30 @@ def mostrar_todos():
     st.session_state.df_escalas = escalas_para_df(st.session_state.escalas)
 
 
-st.title("📋 Sistema de Escala ")
+st.title(" Escalas RSP ")
 
 st.header("🔎 Pesquisa de Operador")
 col1, col2 = st.columns([3,1])
 
 with col1:
-    termo_pesquisa = st.text_input("Pesquisar operador:")
+    termo_pesquisa = st.text_input()
 
 with col2:
     if st.button("🔎 Pesquisar"):
         pesquisar_funcionario(termo_pesquisa)
         st.session_state.mostrar_tabela = True  # habilita tabela
 
-    if st.button("📋 Mostrar Todos"):
+    if st.button("📋 Listar Todos"):
         mostrar_todos()
         st.session_state.mostrar_tabela = True  # habilita tabela
 
 st.markdown("---")
 
-st.header("📂 Escala ")
+st.header(" Escala ")
 
 # Botão carregar
-if st.button("Carregar Escala"):
-    st.session_state.escalas = carregar_arquivo()
-    st.session_state.mostrar_tabela = True
+st.session_state.escalas = carregar_arquivo()
+st.session_state.mostrar_tabela = True
 
 # Mostra tabela SOMENTE se existir e se estiver habilitada
 if st.session_state.get("mostrar_tabela", False):
