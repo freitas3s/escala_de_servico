@@ -2,8 +2,10 @@ from verificarFadiga import verificarFadiga,limparErros,verificarCargaHoraria,ad
 from copiarEscalaDrive import copiarEscala
 import streamlit as st
 import pandas as pd
+
 st.set_page_config(page_title="Escala", layout="wide")
 # Inicialização dos estados
+
 if "escalas" not in st.session_state:
     st.session_state.escalas = []
 
@@ -123,7 +125,6 @@ def pesquisar_funcionario(termo):
         st.info("Digite o nome do operador.")
         mostrar_todos()
         return
-    
     filtradas = [e for e in st.session_state.escalas if termo in e["Nome"].lower()]
     if not filtradas:
         st.warning(f"Operador '{termo}' não encontrado.")
@@ -135,6 +136,15 @@ def mostrar_todos():
 
 
 st.title(" Escalas RSP ")
+
+st.set_page_config(page_title="Escala", layout="wide")
+# Inicialização dos estados
+
+if "escalas" not in st.session_state:
+    st.session_state.escalas = []
+
+if "df_erros" not in st.session_state:
+    st.session_state.df_erros = pd.DataFrame(columns=["Nome", "Dia", "Erro"])
 
 st.session_state.escalas = carregar_arquivo()
 
