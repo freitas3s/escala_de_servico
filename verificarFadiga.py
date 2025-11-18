@@ -62,7 +62,7 @@ def verificarCargaHoraria(escala):
             carga_horaria += 8.00 
         if turno in carga_horaria_dos_turnos["P"]:
             carga_horaria += 7.75
-        if carga_horaria> carga_horaria_maxima:
+        if carga_horaria> int(carga_horaria_maxima):
             adicionarErros(escala, f"Carga Horária extrapolada {carga_horaria} de {carga_horaria_maxima} ", 1)
     return carga_horaria
 
