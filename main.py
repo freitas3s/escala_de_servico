@@ -83,7 +83,7 @@ def executar_verificacao():
     for esc in st.session_state.escalas:
         verificarFadiga(esc)
         carga_horaria = verificarCargaHoraria(esc)
-        carga_horaria_maxima = int(esc.get("CHM", [0])[0:])
+        carga_horaria_maxima = int(esc.get("CHM", [0]))
         
         # Verifica se a carga excede
         if carga_horaria > carga_horaria_maxima:
