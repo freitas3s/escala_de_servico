@@ -39,26 +39,20 @@ def escalas_para_df(escalas):
     return pd.DataFrame(linhas, columns=cols)
 
 def carregar_arquivo():
-    copiarEscala()  # se necessário, você mantém essa função
-    caminho = r"C:\Users\guije\Documents\GitHub\escala_de_servico\escala.json"
-
     try:
-        with open(caminho, 'r', encoding='utf-8') as f:
-            dados = json.load(f)
+        # copia escala direto da planilha (em memória)
+        dados = copiarEscala()  
 
-        if isinstance(dados, dict):
-            dados = [dados]
-    
+        # popula session_state
         st.session_state.escalas = dados
         st.session_state.df_escalas = escalas_para_df(dados)
 
         mostrar_todos()
-
         st.success("Escala carregada com sucesso!")
 
     except Exception as e:
-        st.error(f"Falha ao carregar arquivo: {e}")
-
+        st.error(f"Falha ao carregar a escala: {e}")
+        
 def editarTabela():
     import pandas as pd
 
@@ -173,8 +167,8 @@ st.markdown("---")
 st.header("📂 Escala Matriz")
 
 # Botão carregar
-if st.button("📂 Carregar Escala"):
-    carregar_arquivo()
+if st.button("Carregar Escala"):
+    st.session_state.escalas = copiarEscala()
     st.session_state.mostrar_tabela = True
 
 # Mostra tabela SOMENTE se existir e se estiver habilitada
