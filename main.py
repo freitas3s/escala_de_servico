@@ -137,6 +137,7 @@ def mostrar_todos():
 st.title(" Escalas RSP ")
 
 st.session_state.escalas = carregar_arquivo()
+
 st.header("🔎 Pesquisa de Operador")
 col1, col2 = st.columns([3,1])
 
@@ -157,7 +158,8 @@ st.markdown("---")
 st.header(" Escala ")
 
 # Botão carregar
-
+if st.button("Carregar escala original"):
+    carregar_arquivo()
 st.session_state.mostrar_tabela = True
 
 # Mostra tabela SOMENTE se existir e se estiver habilitada
@@ -171,11 +173,7 @@ if st.session_state.get("mostrar_tabela", False):
         # Só atualiza aqui, evitando recursão infinita
         st.session_state.df_escalas = df_editado
 
-st.markdown("---")
-
-# Verificação de fadiga
-st.header("⚠️ Verificação de Fadiga")
-if st.button("🔍 Verificar Fadiga"):
+if st.button(" Verificar Fadiga"):
     executar_verificacao()
 
 if not st.session_state.df_erros.empty:
