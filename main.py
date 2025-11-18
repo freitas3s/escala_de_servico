@@ -119,7 +119,7 @@ def atualizar_tabela_escalas(escalas):
     st.session_state.df_escalas = df
 
 def pesquisar_funcionario(termo):
-    termo = termo.lower()
+    termo = termo.strip().lower()
     if not termo:
         st.info("Digite o nome do operador.")
         mostrar_todos()
@@ -161,7 +161,7 @@ st.header("Escala de Novembro")
 
 # Botão carregar
 if st.button("Carregar Escala Original"):
-    st.session_state.escalas = carregar_arquivo()
+    carregar_arquivo()
     st.session_state.mostrar_tabela = True
 
 # Mostra tabela SOMENTE se existir e se estiver habilitada
