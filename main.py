@@ -5,12 +5,7 @@ import streamlit as st
 import pandas as pd
 st.set_page_config(page_title="Escala", layout="wide")
 # Inicialização dos estados
-if "escalas" not in st.session_state:
-    st.session_state.escalas = []
 
-if "df_erros" not in st.session_state:
-    st.session_state.df_erros = pd.DataFrame(columns=["Nome", "Dia", "Erro"])
-    
 def escalas_para_df(escalas):
     """Transforma lista de escalas em DataFrame editável"""
     if not escalas:
@@ -126,6 +121,11 @@ def pesquisar_funcionario(termo):
 def mostrar_todos():
     st.session_state.df_escalas = escalas_para_df(st.session_state.escalas)
 
+if "escalas" not in st.session_state:
+    st.session_state.escalas = []
+    carregar_arquivo()
+if "df_erros" not in st.session_state:
+    st.session_state.df_erros = pd.DataFrame(columns=["Nome", "Dia", "Erro"])
 
 st.title("📋 Sistema de Escala ")
 
