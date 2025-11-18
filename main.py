@@ -119,7 +119,7 @@ def atualizar_tabela_escalas(escalas):
     st.session_state.df_escalas = df
 
 def pesquisar_funcionario(termo):
-    termo = termo.strip().lower()
+    termo = termo.lower()
     if not termo:
         st.info("Digite o nome do operador.")
         mostrar_todos()
