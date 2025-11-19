@@ -98,7 +98,7 @@ def executar_verificacao():
         
         # Verifica se a carga excede
         if carga_horaria > carga_horaria_maxima:
-            adicionarErros(esc, f"Carga Horária extrapolada {carga_horaria} de {carga_horaria_maxima} ", 1)
+            adicionarErros(esc, f"Carga Horária extrapolada {carga_horaria:.2f} de {carga_horaria_maxima} ", 1)
 
     
 
@@ -169,7 +169,7 @@ with col2:
 if st.button("Listar Todos"):
     st.session_state.mostrar_tabela = True
     st.session_state.df_filtrado = st.session_state.df_escalas 
-    
+
 st.markdown("---")
 
 st.header("Escala de Novembro")
