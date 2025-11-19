@@ -16,13 +16,20 @@ def escalas_para_df(escalas):
     if not escalas:
         return pd.DataFrame()
     
-    max_dias = max(len(e["Turnos"]) for e in escalas)
+    max_dias = max(len(e.get("Turnos", [])) for e in escalas)
     colunas = ["Nome"] + [f"{i+1}" for i in range(max_dias)] + ["CHM"]
 
     tabela = []
     for e in escalas:
-        linha = {"Nome": e["Nome"], "CHM": e.get("Carga horaria mensal", [""])[0]}
-        for i, turno in enumerate(e["Turnos"]):
+        # aceita tanto "CHM" quanto "Carga horaria mensal"
+        ch_val = e.get("CHM")
+        if ch_val in (None, ""):
+            ch_val = e.get("Carga horaria mensal", "")
+            # se vier como lista, pega o primeiro elemento
+            if isinstance(ch_val, list):
+                ch_val = ch_val[0] if ch_val else ""
+        linha = {"Nome": e.get("Nome", ""), "CHM": ch_val}
+        for i, turno in enumerate(e.get("Turnos", [])):
             linha[str(i+1)] = turno
         tabela.append(linha)
     df = pd.DataFrame(tabela)
@@ -32,12 +39,15 @@ def escalas_para_df(escalas):
 def carregar_arquivo():
     try:
         dados = copiarEscala()
-        st.session_state.escalas = dados
-        st.session_state.df_escalas = escalas_para_df(dados)
+        # atualiza a fonte de verdade
+        st.session_state.escalas = dados or []
+        # gera o df a partir do dado carregado (force refresh)
+        st.session_state.df_escalas = escalas_para_df(st.session_state.escalas)
+        # marca que acabamos de carregar uma nova escala (forçar exibição)
+        st.session_state._df_last_source = "carregado"
         st.success("Escala carregada com sucesso!")
     except Exception as e:
         st.error(f"Falha ao carregar a escala: {e}")
-
 def editarTabela():
 
     df = st.session_state.get("df_escalas", pd.DataFrame())
@@ -118,11 +128,11 @@ def atualizar_tabela_escalas(escalas):
 
     st.session_state.df_escalas = df
 
-def pesquisar_funcionario(termo):
+def pesquisar_funcionario(termo, force_refresh=False):
     termo = termo.strip().lower()
     if not termo:
         st.info("Digite o nome do operador.")
-        mostrar_todos()
+        mostrar_todos(force_refresh=force_refresh)
         return
     filtradas = [
         e for e in st.session_state.escalas
@@ -131,10 +141,18 @@ def pesquisar_funcionario(termo):
     if not filtradas:
         st.warning(f"Operador '{termo}' não encontrado.")
         return
+    # atualiza df_escalas com os resultados da busca (isso substitui porque é intencional)
     st.session_state.df_escalas = escalas_para_df(filtradas)
+    st.session_state._df_last_source = "pesquisa"
 
-def mostrar_todos():
-    st.session_state.df_escalas = escalas_para_df(st.session_state.escalas)
+def mostrar_todos(force_refresh=False):
+    # Só recria o df se não existir OU se for forçado (por ex. após novo upload)
+    if force_refresh or "df_escalas" not in st.session_state or st.session_state.df_escalas.empty:
+        st.session_state.df_escalas = escalas_para_df(st.session_state.escalas)
+        st.session_state._df_last_source = "mostrar_todos"
+    else:
+        # mantém df_escalas atual (preserva edições)
+        pass
 
 st.title("📋 Escala RSP ")
 
@@ -151,9 +169,9 @@ with col2:
         pesquisar_funcionario(termo_pesquisa)
         st.session_state.mostrar_tabela = True  # habilita tabela
 
-    if st.button("Listar Todos"):
-        mostrar_todos()
-        st.session_state.mostrar_tabela = True  # habilita tabela
+if st.button("Listar Todos"):
+    mostrar_todos(force_refresh=True)
+    st.session_state.mostrar_tabela = True
 
 st.markdown("---")
 
@@ -175,10 +193,15 @@ if st.session_state.get("mostrar_tabela", False):
             key="tabela_escalas"
         )
 
-        # Sempre que editar, atualiza as escalas internas
+        # Sempre que o usuário editar, atualiza as escalas internas
+        # e marca que o df foi editado pelo usuário (não sobrescrever)
         if df_editado is not None:
-            st.session_state.df_escalas = df_editado
-            editarTabela()   # <-- importante!
+            # Só atualizar se mudou (evita trabalho desnecessário)
+            if not df_editado.equals(st.session_state.df_escalas):
+                st.session_state.df_escalas = df_editado.copy()
+                editarTabela()   # sincroniza st.session_state.escalas
+                st.session_state._df_last_source = "editado_pelo_usuario"
+
 
 if st.button(" Verificar Fadiga"):
     executar_verificacao()
