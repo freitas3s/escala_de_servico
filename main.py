@@ -128,25 +128,12 @@ def atualizar_tabela_escalas(escalas):
 
     st.session_state.df_escalas = df
 
-def pesquisar_funcionario(termo):
-    termo = termo.strip().lower()
-    if not termo:
-        st.info("Digite o nome do operador.")
+def pesquisar_funcionario():
+    termo = st.session_state.termo_pesquisa.lower()
+    df = st.session_state.df_escalas
 
-        return
-    
-    # Filtra SEM destruir escalas originais
-    filtradas = [
-        e for e in st.session_state.escalas
-        if "Nome" in e and termo in str(e["Nome"]).lower()
-    ]
-
-    if not filtradas:
-        st.warning(f"Operador '{termo}' não encontrado.")
-        return
-
-    # Exibe apenas filtradas, sem resetar tudo
-    st.session_state.df_escalas = escalas_para_df(filtradas)
+    st.session_state.df_filtrado = df[df["Nome"].str.lower().str.contains(termo)]
+    st.session_state.mostrar_tabela = True
 
 # def mostrar_todos():
 #     # Apenas exibe tudo SEM resetar as edições do usuário
@@ -160,12 +147,13 @@ st.header("🔎 Pesquisar Operador")
 col1, col2 = st.columns([3,1])
 
 with col1:
-    termo_pesquisa = st.text_input("",on_change=pesquisar_funcionario())
+    termo_pesquisa = st.text_input("Pesquisar funcionário", key="termo_pesquisa", on_change=pesquisar_funcionario)
 
-with col2:
-    if st.button("🔎 Pesquisar"):
-        pesquisar_funcionario(termo_pesquisa)
-        st.session_state.mostrar_tabela = True  # habilita tabela  
+
+# with col2:
+#     if st.button("🔎 Pesquisar"):
+#         pesquisar_funcionario(termo_pesquisa)
+#         st.session_state.mostrar_tabela = True  # habilita tabela  
 
 # /if st.button("Listar Todos"):
 #     st.session_state.mostrar_tabela = True
