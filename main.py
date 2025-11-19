@@ -166,10 +166,10 @@ with col2:
         pesquisar_funcionario(termo_pesquisa)
         st.session_state.mostrar_tabela = True  # habilita tabela  
 
-    if st.button("Listar Todos"):
-        st.session_state.df_escalas = st.session_state.df_escalas_original.copy()
-        st.session_state.mostrar_tabela = True
-
+if st.button("Listar Todos"):
+    st.session_state.mostrar_tabela = True
+    st.session_state.df_filtrado = st.session_state.df_escalas 
+    
 st.markdown("---")
 
 st.header("Escala de Novembro")
