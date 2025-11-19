@@ -37,76 +37,84 @@ Este é um aplicativo web desenvolvido em **Python** com **Streamlit** para gere
 
 ##  Instalação
 
-1. Clone o repositório:
-bash git clone <URL_DO_REPOSITORIO>
-      cd <NOME_DO_REPOSITORIO>
+1. **Clone o repositório:**
+      -bash git clone <URL_DO_REPOSITORIO>
+      -cd <NOME_DO_REPOSITORIO>
 
-2. Crie um ambiente virtual (opcional, mas recomendado):
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-venv\Scripts\activate     # Windows
+2. **Crie um ambiente virtual (opcional, mas recomendado):**
+-python -m venv venv
+-source venv/bin/activate  # Linux/Mac
+-venv\Scripts\activate     # Windows
 
-3. Instale as dependências:
+3. **Instale as dependências:**
 
-pip install -r requirements.txt
+- pip install -r requirements.txt
 
-Dependências principais:
+---
 
-streamlit
-pandas
-gspread
-google-auth
+##  Dependências principais:
 
- Configuração do Google Drive
+-streamlit
+-pandas
+-gspread
+-google-auth
+
+---
+
+##  Configuração do Google Drive
 
 O app acessa um Google Sheet usando Service Account. Para isso:
 
-Crie uma Service Account no Google Cloud.
-Gere a chave JSON e adicione como secret no Streamlit:
-st.secrets["GDRIVE_KEY"] = <CONTEÚDO_DO_JSON>
-Compartilhe a planilha com o e-mail da Service Account.
-
-Como Usar.
-Execute o aplicativo:
-streamlit run main.py
+-Crie uma Service Account no Google Cloud.
+-Gere a chave JSON e adicione como secret no Streamlit:
+-st.secrets["GDRIVE_KEY"] = <CONTEÚDO_DO_JSON>
+-Compartilhe a planilha com o e-mail da Service Account.
 
 
-Carregar Escala Original: carrega os dados da planilha e exibe a tabela.
-Pesquisar Operador: digite o nome para filtrar a tabela.
-A edição ainda é possível mesmo com filtro ativo.
-Editar Turnos e Carga Horária: clique nas células da tabela para alterar valores.
-Verificar Fadiga: clique no botão para executar todas as validações:
-Carga horária máxima
-Folgas seguidas
-Dias consecutivos
-Turnos tarde → manhã
-Pernoites sem descanso adequado
-Erros Encontrados: a tabela de erros será exibida abaixo, mostrando dia e tipo de erro.
+---
 
-  Regras de Verificação
 
-As regras são definidas em verificarFadiga.py:
-Carga Horária: Cada tipo de turno possui valor específico em horas.
-Folgas: Mais de 5 folgas consecutivas gera alerta.
-Dias consecutivos: Mais de 6 dias seguidos de trabalho sem descanso adequado gera alerta.
-Turnos Tarde → Manhã: Não permitido; gera alerta.
-Pernoites: Necessário 24h de folga após pernoite.
+##  Como Usar
+-Execute o aplicativo:
+-streamlit run main.py
+
+-Carregar Escala Original: carrega os dados da planilha e exibe a tabela.
+-Pesquisar Operador: digite o nome para filtrar a tabela.
+-A edição ainda é possível mesmo com filtro ativo.
+-Editar Turnos e Carga Horária: clique nas células da tabela para alterar valores.
+-Verificar Fadiga: clique no botão para executar todas as validações:
+-Carga horária máxima
+-Folgas seguidas
+-Dias consecutivos
+-Turnos tarde → manhã
+-Pernoites sem descanso adequado
+-Erros Encontrados: a tabela de erros será exibida abaixo, mostrando dia e tipo de erro.
+
+ ##  Regras de Verificação
+
+**As regras são definidas em verificarFadiga.py:**
+
+-Carga Horária: Cada tipo de turno possui valor específico em horas.
+-Folgas: Mais de 5 folgas consecutivas gera alerta.
+-Dias consecutivos: Mais de 6 dias seguidos de trabalho sem descanso adequado gera alerta.
+-Turnos Tarde → Manhã: Não permitido; gera alerta.
+-Pernoites: Necessário 24h de folga após pernoite.
   
-  Observações
+##  Observações
 
-As alterações feitas na tabela filtrada atualizam a lista principal.
-O botão “Listar Todos” mostra novamente todos os operadores sem resetar edições.
-O app não salva alterações no Google Sheets; apenas manipula os dados localmente.
+-As alterações feitas na tabela filtrada atualizam a lista principal.
+-O botão “Listar Todos” mostra novamente todos os operadores sem resetar edições.
+-O app não salva alterações no Google Sheets; apenas manipula os dados localmente.
 
-Sugestão de Melhorias
+## Sugestão de Melhorias
 
-Implementar salvamento das alterações no Google Sheets.
-Adicionar alertas visuais ou cores na tabela para destacar erros.
-Criar histórico de escalas para comparação mensal.
+-Implementar salvamento das alterações no Google Sheets.
+-Adicionar alertas visuais ou cores na tabela para destacar erros.
+-Criar histórico de escalas para comparação mensal.
 
- Tecnologias Utilizadas
+ ##  Tecnologias Utilizadas
 
-Python 3.10+
-Streamlit
-Pandas
-Google Sheets API (gspread, google-auth)
+-Python 3.10+
+-Streamlit
+-Pandas
+-Google Sheets API (gspread, google-auth)
