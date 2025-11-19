@@ -7,7 +7,7 @@ combos={
     "folgas possíveis": ['',"F","f",None,""],
     "dispensas": ["SAE","DM","A","FE","OS","EX","CP","CM","CT","AM","AT","SAM","SAT","SAMP","","F","f","TO","NU",'',""],
 
-    "Manhas":["M","MSP","MP","MP.","MCP","MSAP","SIMSP","SIMP","SIM","M.","M.SP","M.P","M.P.","M1","M1SP","M1P","M1P.","M1CP","SRM","SRMP","SRMSP","SRMCP","SAM","SAMSP","SAMP","SAMP.","SAMCP"],
+    "Manhas":["SAM","SAMSP","SAMP","SAMP.","SAMCP","M","MSP","MP","MP.","MCP","MSAP","SIMSP","SIMP","SIM","M.","M.SP","M.P","M.P.","SM","SMP","SMSP","SMCP,","M1","M1SP","M1P","M1P.","M1.","M1.SP","M1.P","M1.P.","M1CP","SRM","SRMP","SRMSP","SRMCP"],
     "M1": ["M1SP","M1P","M1P.","M1CP"],
     "M2":["M2","M2SP","M2P","M2P.","M2CP"],
     "Tardes" : ["CT","ST","SAT","T","SIT","T.","T2","T2."],
@@ -22,23 +22,52 @@ combos={
     }
 
 carga_horaria_dos_turnos ={
-    "M":["M","MSP","MP","MP.","MCP","MSAP","SIMSP","SIMP","SIM","M.","M.SP","M.P","M.P."],
-    "M1": ["M1","M1SP","M1P","M1P.","M1CP","SRM","SRMP","SRMSP","SRMCP"],
-    "M2":["M2","M2SP","M2P","M2P.","M2CP"],
-    "T" : ["CT","ST","SAT","T","SIT","T."],
-    "T1":["SRT","T1","T1.","T2","T2."],
-    "P": ["P","SMP","SRMP","MP","M1P","M2P","AMP","SAMP","TO/P","SIMP","MEXP","CMP","M.P","M1.P","M2.P","M.P.","M1.P.","M2.P.","P.","SMP","SRMP.","MP.","M1P.","M2P.""AMP.""SAMP.","TO/P.","RE/P.","MEXP.","SP","SRMSP","MSP","M1SP","M2SP","SAMSP",'SMSP',"TO/SP","AMSP","RE/SP","MEXSP","CMSP","M.SP"],
-
+    "M": {"SAM","SAMSP","SAMP","SAMP.","SAMCP","M","MSP","MP","MP.","MCP","MSAP","SIMSP","SIMP","SIM","M.","M.SP","M.P","M.P.","SM","SMP","SMSP","SMCP,"},#7.75
+    "M1": {"M1","M1SP","M1P","M1P.","M1.","M1.SP","M1.P","M1.P.","M1CP","SRM","SRMP","SRMSP","SRMCP"},#5.75
+    "M2":{"M2","M2SP","M2P","M2P.","M2CP","M2.","M2.SP","M2.P","M2.P."}, #6.0
+    "AM": {"AM","AMSP","AMP","AMP.","AMCP"},#2.58
+    "T" : {"CT","ST","SAT","T","SIT","T."}, #9.25
+    "AT" : {"AT"}, #3.08
+    "SRT": {"SRT"}, #7.00
+    "RT": {"SRT","T1","T1.","T2","T2."}, #7.25
+    "P": {"P","SMP","SRMP","MP","M1P","M2P","AMP","SAMP","TO/P","SIMP","MEXP","CMP","M.P","M1.P","M2.P","M.P.","M1.P.","M2.P.","P.","SMP","SRMP.","MP.","M1P.","M2P.""AMP.""SAMP.","TO/P.","RE/P.","MEXP.","SP","SRMSP","MSP","M1SP","M2SP","SAMSP",'SMSP',"TO/SP","AMSP","RE/SP","MEXSP","CMSP","M.SP"},
+    "MEX" : {"MEX","MC","MSO","MEXSP","MEXP","RE/MEX","MEXCP","RE","RE/SP","RE/P","RE/CP"}, #4.00
+    "Cameras": {"CM","CMP","CMSP","CMCP","M.CP","CT","CP","SRMCP","MCP","M1CP","M2CP","SAMCP","SMCP","TO/CP","AMCP","RE/CP","MEXCP","CMCP","M.CP","M1.CP","M2.CP","EX","C","SO","RE/EX","EXP"}#8.00
 }
+
+def verificarCargaHoraria(escala):
+    carga_horaria = 0
+
+    for turno in escala["Turnos"]:
+        if turno in carga_horaria_dos_turnos["M"]:
+            carga_horaria += 7.75
+        elif turno in carga_horaria_dos_turnos["M1"]:
+            carga_horaria += 5.75
+        elif turno in carga_horaria_dos_turnos["M2"]:
+            carga_horaria += 6.00
+        elif turno in carga_horaria_dos_turnos["AM"]:
+            carga_horaria += 2.58
+        elif turno in carga_horaria_dos_turnos["T"]:
+            carga_horaria += 9.25
+        elif turno in carga_horaria_dos_turnos["AT"]:
+            carga_horaria += 3.08
+        elif turno in carga_horaria_dos_turnos["SRT"]:
+            carga_horaria += 7.00
+        elif turno in carga_horaria_dos_turnos["RT"]:
+            carga_horaria += 7.25 
+        elif turno in carga_horaria_dos_turnos["MEX"]:
+            carga_horaria += 4.00
+        elif turno in carga_horaria_dos_turnos["Cameras"]:
+            carga_horaria += 8.00 
+        if turno in carga_horaria_dos_turnos["P"]:
+            carga_horaria += 7.75
+    return carga_horaria
 
 dia = 1
 
-def adicionarErros(escala, erro_chave, dia):
+def adicionarErros(escala, erro, dia):
     nome = escala.get("Nome", "Sem nome")
-    descricao = combos.get(erro_chave, f"Erro não identificado: {erro_chave}")
-    if descricao is None:
-        descricao = f"Erro não identificado: {erro_chave}"
-
+    descricao = erro
     nova_linha = {"Nome": nome, "Dia": str(dia), "Erro": descricao}
     st.session_state.df_erros = pd.concat(
         [st.session_state.df_erros, pd.DataFrame([nova_linha])],
@@ -99,8 +128,9 @@ def verificarFadiga(escala):
         # condição onde pernoite está presente e o dia +2 não é dispensa
         if dias_seguidos == 5 and (turno_atual in pernoites) and (prox2 not in dispensas):
             key = ("Consecutivos", dia)
+            erro = combos["Consecutivos"]
             if key not in seen_errors:
-                adicionarErros(escala, "Consecutivos", dia)
+                adicionarErros(escala, erro, dia)
                 seen_errors.add(key)
             dias_seguidos = 0
 
@@ -110,8 +140,9 @@ def verificarFadiga(escala):
             cond_prox_not_disp = (prox1 not in dispensas) and (prox2 not in dispensas)
             if (turno_anterior not in pernoites) and cond_prox_not_disp:
                 key = ("Consecutivos", dia)
+                erro = combos["Consecutivos"]
                 if key not in seen_errors:
-                    adicionarErros(escala, "Consecutivos", dia)
+                    adicionarErros(escala, erro, dia)
                     seen_errors.add(key)
                 dias_seguidos = 0
 
@@ -126,32 +157,26 @@ def verificarFadiga(escala):
             if turnos[i - 6] not in pernoites:
                 day_to_report = max(1, i - 4)  # garanta >= 1
                 key = ("Folgas", day_to_report)
+                erro = combos["Folgas"]
                 if key not in seen_errors:
-                    adicionarErros(escala, "Folgas", day_to_report)
+                    adicionarErros(escala, erro, day_to_report)
                     seen_errors.add(key)
             folgas = 0
 
         # --- Erros envolvendo pernoite ---
         if (turno_anterior in pernoites) and ( (turno_atual not in dispensas) or (prox1 in manhas) ):
             key = ("erro pernoite", dia)
+            erro = combos["erro pernoite"]
             if key not in seen_errors:
-                adicionarErros(escala, "erro pernoite", dia)
+                adicionarErros(escala, erro, dia)
                 seen_errors.add(key)
 
         # --- Erros tarde -> manhã ---
         if (turno_atual in tardes) and (prox1 in manhas) and (prox1 != ""):
             key = ("erro tarde", dia)
+            erro = combos["erro tarde"]
             if key not in seen_errors:
-                adicionarErros(escala, "erro tarde", dia)
+                adicionarErros(escala, erro, dia)
                 seen_errors.add(key)
 
     return st.session_state.df_erros
-
-
-
-if __name__ == "__main__":
-    print(verificarFadiga({
-        "Nome": "Teste",
-        "Turnos": ["M","M","T","",None,"SMP"],
-        "CHM": "160"
-    }))
