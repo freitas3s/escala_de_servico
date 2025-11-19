@@ -164,11 +164,11 @@ with col1:
 with col2:
     if st.button("🔎 Pesquisar"):
         pesquisar_funcionario(termo_pesquisa)
-        st.session_state.mostrar_tabela = True  # habilita tabela
+        st.session_state.mostrar_tabela = True  # habilita tabela  
 
-if st.button("Listar Todos"):
-    mostrar_todos()
-    st.session_state.mostrar_tabela = True
+    if st.button("Listar Todos"):
+        st.session_state.df_escalas = st.session_state.df_escalas_original.copy()
+        st.session_state.mostrar_tabela = True
 
 st.markdown("---")
 
@@ -178,6 +178,7 @@ st.header("Escala de Novembro")
 if st.button("Carregar Escala Original"):
     carregar_arquivo()   # NÃO ASSIGNAR NADA
     st.session_state.df_escalas = escalas_para_df(st.session_state.escalas)
+    st.session_state.df_escalas_original = st.session_state.df_escalas.copy()
     st.session_state.mostrar_tabela = True
 
 # Mostra tabela SOMENTE se existir e se estiver habilitada
@@ -193,8 +194,8 @@ if st.session_state.get("mostrar_tabela", False):
 
         if df_editado is not None:
             st.session_state.df_escalas = df_editado.copy()
-            editarTabela()   # <-- atualiza st.session_state.escalas mantendo edição
-
+            st.session_state.df_escalas_original = df_editado.copy()
+            editarTabela()  # atualiza st.session_state.escalas
 
 if st.button(" Verificar Fadiga"):
     executar_verificacao()
