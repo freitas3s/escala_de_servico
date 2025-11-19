@@ -147,9 +147,9 @@ def pesquisar_funcionario(termo):
     # Exibe apenas filtradas, sem resetar tudo
     st.session_state.df_escalas = escalas_para_df(filtradas)
 
-def mostrar_todos():
-    # Apenas exibe tudo SEM resetar as edições do usuário
-    st.session_state.df_escalas = escalas_para_df(st.session_state.escalas)
+# def mostrar_todos():
+#     # Apenas exibe tudo SEM resetar as edições do usuário
+#     st.session_state.df_escalas = escalas_para_df(st.session_state.escalas)
 
 st.title("📋 Escala RSP ")
 
@@ -167,7 +167,6 @@ with col2:
         st.session_state.mostrar_tabela = True  # habilita tabela
 
 if st.button("Listar Todos"):
-    mostrar_todos(force_refresh=True)
     st.session_state.mostrar_tabela = True
 
 st.markdown("---")
@@ -179,7 +178,7 @@ if st.button("Carregar Escala Original"):
     carregar_arquivo()   # NÃO ASSIGNAR NADA
     st.session_state.df_escalas = escalas_para_df(st.session_state.escalas)
     st.session_state.mostrar_tabela = True
-    
+
 # Mostra tabela SOMENTE se existir e se estiver habilitada
 if st.session_state.get("mostrar_tabela", False):
     if "df_escalas" in st.session_state and not st.session_state.df_escalas.empty:
