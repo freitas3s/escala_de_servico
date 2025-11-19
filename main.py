@@ -160,7 +160,7 @@ st.header("🔎 Pesquisar Operador")
 col1, col2 = st.columns([3,1])
 
 with col1:
-    termo_pesquisa = st.text_input("")
+    termo_pesquisa = st.text_input("",on_change=pesquisar_funcionario())
 
 with col2:
     if st.button("🔎 Pesquisar"):
