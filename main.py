@@ -1,18 +1,32 @@
-from verificarFadiga import verificarFadiga,limparErros,verificarCargaHoraria,adicionarErros
+from verificarFadiga import verificarFadiga, limparErros, verificarCargaHoraria, adicionarErros
 from copiarEscalaDrive import copiarEscala
 import streamlit as st
 import pandas as pd
 
 st.set_page_config(page_title="Escala", layout="wide")
 
+# ----------------------
+# Inicialização do session_state
+# ----------------------
 if "escalas" not in st.session_state:
     st.session_state.escalas = []
+
+if "df_escalas" not in st.session_state:
+    st.session_state.df_escalas = pd.DataFrame()
+
+if "df_filtrado" not in st.session_state:
+    st.session_state.df_filtrado = pd.DataFrame()
+
+if "filtro_ativo" not in st.session_state:
+    st.session_state.filtro_ativo = False
 
 if "df_erros" not in st.session_state:
     st.session_state.df_erros = pd.DataFrame(columns=["Nome", "Dia", "Erro"])
 
+# ----------------------
+# Funções auxiliares
+# ----------------------
 def escalas_para_df(escalas):
-    """Transforma lista de escalas em DataFrame editável"""
     if not escalas:
         return pd.DataFrame()
     
@@ -21,70 +35,90 @@ def escalas_para_df(escalas):
 
     tabela = []
     for e in escalas:
-        # aceita tanto "CHM" quanto "Carga horaria mensal"
         ch_val = e.get("CHM")
         if ch_val in (None, ""):
             ch_val = e.get("Carga horaria mensal", "")
-            # se vier como lista, pega o primeiro elemento
             if isinstance(ch_val, list):
                 ch_val = ch_val[0] if ch_val else ""
         linha = {"Nome": e.get("Nome", ""), "CHM": ch_val}
         for i, turno in enumerate(e.get("Turnos", [])):
             linha[str(i+1)] = turno
         tabela.append(linha)
+    
     df = pd.DataFrame(tabela)
+    # garante todas as colunas
+    for c in colunas:
+        if c not in df.columns:
+            df[c] = ""
     df = df.reindex(columns=colunas)
     return df
 
-def carregar_arquivo():
-    try:
-        dados = copiarEscala()
-        # atualiza a fonte de verdade
-        st.session_state.escalas = dados or []
-        # gera o df a partir do dado carregado (force refresh)
-        st.session_state.df_escalas = escalas_para_df(st.session_state.escalas)
-        # marca que acabamos de carregar uma nova escala (forçar exibição)
-        st.session_state._df_last_source = "carregado"
-        st.success("Escala carregada com sucesso!")
-    except Exception as e:
-        st.error(f"Falha ao carregar a escala: {e}")
-def editarTabela():
-
-    df = st.session_state.get("df_escalas", pd.DataFrame())
-    if df.empty:
-        st.session_state.escalas = []
-        return
-
+def df_para_escalas(df):
     col_dias = [c for c in df.columns if c not in ("Nome", "CHM")]
     col_dias = sorted(col_dias, key=lambda x: int(x))
-
     novas = []
-
     for _, row in df.iterrows():
-        nome = row.get("Nome", "")
-
         turnos = []
         for c in col_dias:
             v = row.get(c, "")
             if pd.isna(v) or v is None:
                 v = ""
-            turnos.append(v.upper())
-
-        ch = row.get("CHM", "")
-        if isinstance(ch, list):
-            ch = ch[0] if ch else ""
-
+            turnos.append(str(v).upper())
         novas.append({
-            "Nome": nome,
+            "Nome": row["Nome"],
             "Turnos": turnos,
-            "CHM": ch
+            "CHM": row["CHM"]
         })
+    return novas
 
-    st.session_state.escalas = novas
+def carregar_arquivo():
+    try:
+        dados = copiarEscala() or []
+        st.session_state.escalas = dados
+        st.session_state.df_escalas = escalas_para_df(dados)
+        st.session_state.df_filtrado = pd.DataFrame()
+        st.session_state.filtro_ativo = False
+        st.session_state.mostrar_tabela = True
+        st.success("Escala carregada com sucesso!")
+    except Exception as e:
+        st.error(f"Falha ao carregar a escala: {e}")
+
+def pesquisar_funcionario():
+    termo = st.session_state.get("termo_pesquisa", "").strip().lower()
+    if not termo:
+        st.info("Digite o nome do operador.")
+        return
+    filtradas = [
+        e for e in st.session_state.escalas
+        if termo in str(e["Nome"]).lower()
+    ]
+    if not filtradas:
+        st.warning(f"Operador '{termo}' não encontrado.")
+        st.session_state.df_filtrado = pd.DataFrame()
+        st.session_state.filtro_ativo = False
+        return
+    st.session_state.df_filtrado = escalas_para_df(filtradas)
+    st.session_state.filtro_ativo = True
+
+def atualizar_escala(df_editado):
+    """Atualiza a lista de escalas principal a partir de um DataFrame editado"""
+    if df_editado is None or df_editado.empty:
+        return
+    for i, row in df_editado.iterrows():
+        # Atualiza pela coluna "Nome"
+        nome = row["Nome"]
+        idx = st.session_state.df_escalas[st.session_state.df_escalas["Nome"] == nome].index
+        if len(idx) > 0:
+            st.session_state.df_escalas.loc[idx[0]] = row
 
 def executar_verificacao():
-    if "df_escalas" in st.session_state:
-        editarTabela()   # converte df -> listas em st.session_state.escalas
+    if st.session_state.filtro_ativo:
+        df_para_analisar = st.session_state.df_filtrado
+    else:
+        df_para_analisar = st.session_state.df_escalas
+
+    # Atualiza lista de escalas principal antes de rodar
+    st.session_state.escalas = df_para_escalas(df_para_analisar)
 
     if not st.session_state.escalas:
         st.warning("Nenhuma escala carregada")
@@ -94,111 +128,57 @@ def executar_verificacao():
     for esc in st.session_state.escalas:
         verificarFadiga(esc)
         carga_horaria = verificarCargaHoraria(esc)
-        carga_horaria_maxima = float(esc.get("CHM", [0]))
-        
-        # Verifica se a carga excede
+        try:
+            carga_horaria_maxima = float(esc.get("CHM", 0))
+        except:
+            carga_horaria_maxima = 0.0
         if carga_horaria > carga_horaria_maxima:
-            adicionarErros(esc, f"Carga Horária extrapolada {carga_horaria:.2f} de {carga_horaria_maxima} ", 1)
-
-    
-
+            adicionarErros(esc, f"Carga Horária extrapolada {carga_horaria:.2f} de {carga_horaria_maxima}", 1)
     st.success(f"Foram encontrados {len(st.session_state.df_erros)} erros.")
 
-def atualizar_tabela_escalas(escalas):
-    if not escalas:
-        st.session_state.df_escalas = pd.DataFrame()
-        return
-
-    max_dias = max(len(e["Turnos"]) for e in escalas)
-    colunas = ["Nome"] + [f"{i+1}" for i in range(max_dias)] + ["CHM"]
-
-    tabela = []
-
-    for e in escalas:
-        linha = {"Nome": e["Nome"], "CHM": e.get("CHM", "")}
-
-        # Preenche os turnos
-        for i, turno in enumerate(e["Turnos"]):
-            linha[str(i+1)] = turno
-
-        tabela.append(linha)
-
-    df = pd.DataFrame(tabela)
-    df = df.reindex(columns=colunas)  # garante ordem e colunas obrigatórias
-
-    st.session_state.df_escalas = df
-
-def pesquisar_funcionario(termo):
-    termo = termo.strip().lower()
-    if not termo:
-        st.info("Digite o nome do operador.")
-
-        return
-    
-    # Filtra SEM destruir escalas originais
-    filtradas = [
-        e for e in st.session_state.escalas
-        if "Nome" in e and termo in str(e["Nome"]).lower()
-    ]
-
-    if not filtradas:
-        st.warning(f"Operador '{termo}' não encontrado.")
-        return
-
-    # Exibe apenas filtradas, sem resetar tudo
-    st.session_state.df_escalas = escalas_para_df(filtradas)
-
-# def mostrar_todos():
-#     # Apenas exibe tudo SEM resetar as edições do usuário
-#     st.session_state.df_escalas = escalas_para_df(st.session_state.escalas)
-
-st.title("📋 Escala RSP ")
-
+# ----------------------
+# Layout
+# ----------------------
+st.title("📋 Escala RSP")
 st.markdown("---")
-
 st.header("🔎 Pesquisar Operador")
-col1, col2 = st.columns([3,1])
 
+col1, col2 = st.columns([3,1])
 with col1:
-    termo_pesquisa = st.text_input("")
+    termo_pesquisa = st.text_input("Nome do operador", key="termo_pesquisa", on_change=pesquisar_funcionario)
 
 with col2:
     if st.button("🔎 Pesquisar"):
-        pesquisar_funcionario(termo_pesquisa)
-        st.session_state.mostrar_tabela = True  # habilita tabela  
-
-# /if st.button("Listar Todos"):
-#     st.session_state.mostrar_tabela = True
-#     st.session_state.df_filtrado = st.session_state.df_escalas 
+        pesquisar_funcionario()
+    if st.button("Listar Todos"):
+        st.session_state.df_filtrado = pd.DataFrame()
+        st.session_state.filtro_ativo = False
 
 st.markdown("---")
-
 st.header("Escala de Novembro")
 
-# Botão carregar
 if st.button("Carregar Escala Original"):
-    carregar_arquivo()   # NÃO ASSIGNAR NADA
-    st.session_state.df_escalas = escalas_para_df(st.session_state.escalas)
-    st.session_state.df_escalas_original = st.session_state.df_escalas.copy()
-    st.session_state.mostrar_tabela = True
+    carregar_arquivo()
 
-# Mostra tabela SOMENTE se existir e se estiver habilitada
+# Mostrar tabela
 if st.session_state.get("mostrar_tabela", False):
-    if "df_escalas" in st.session_state and not st.session_state.df_escalas.empty:
-
+    if st.session_state.filtro_ativo:
+        df_editado = st.data_editor(
+            st.session_state.df_filtrado,
+            key="editor_filtrado",
+            use_container_width=True
+        )
+        st.session_state.df_filtrado = df_editado.copy()
+        atualizar_escala(df_editado)
+    else:
         df_editado = st.data_editor(
             st.session_state.df_escalas,
-            num_rows="dynamic",
-            use_container_width=True,
-            key="tabela_escalas"
+            key="editor_todos",
+            use_container_width=True
         )
+        st.session_state.df_escalas = df_editado.copy()
 
-        if df_editado is not None:
-            st.session_state.df_escalas = df_editado.copy()
-            st.session_state.df_escalas_original = df_editado.copy()
-            editarTabela()  # atualiza st.session_state.escalas
-
-if st.button(" Verificar Fadiga"):
+if st.button("Verificar Fadiga"):
     executar_verificacao()
 
 if not st.session_state.df_erros.empty:
