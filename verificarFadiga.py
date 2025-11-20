@@ -5,16 +5,17 @@ combos={
     "erro pernoite":"Necessário 24 horas de folga após Pernoite",
     
     "folgas possíveis": ['',"F","f",None,""],
-    "dispensas": ["SAE","DM","A","FE","OS","EX","CP","CM","CT","AM","AT","SAM","SAT","SAMP","","F","f","TO","NU",'',""],
+    "dispensas": ["SAE","DM","A","FE","OS","EX","CP","CM","CT","AM","AT","SAM","SAT","SAMP","","F","f","TO","NU",'',"",'',"F","f",None,""],
 
     "Manhas":["SAM","SAMSP","SAMP","SAMP.","SAMCP","M","MSP","MP","MP.","MCP","MSAP","SIMSP","SIMP","SIM","M.","M.SP","M.P","M.P.","SM","SMP","SMSP","SMCP,","M1","M1SP","M1P","M1P.","M1.","M1.SP","M1.P","M1.P.","M1CP","SRM","SRMP","SRMSP","SRMCP"],
-    "M1": ["M1SP","M1P","M1P.","M1CP"],
-    "M2":["M2","M2SP","M2P","M2P.","M2CP"],
+    "M1": ["SRM","M1.","M1"],
+    "M2":["M2","M2SP","M2P","M2P.","M2CP","M2.CP"],
     "Tardes" : ["CT","ST","SAT","T","SIT","T.","T2","T2."],
     "T1":["SRT","T1","T1."],
     "T2":["T2","T2."],
     "Pernoites" : ["P","SMP","SRMP","MP","M1P","M2P","AMP","SAMP","TO/P","SIMP","MEXP","CMP","M.P","M1.P","M2.P","M.P.","M1.P.","M2.P.","P.","SMP","SRMP.","MP.","M1P.","M2P.""AMP.""SAMP.","TO/P.","RE/P.","MEXP.","SP","SRMSP","MSP","M1SP","M2SP","SAMSP",'SMSP',"TO/SP","AMSP","RE/SP","MEXSP","CMSP","M.SP"],
-    
+    "Pernoite sozinho" : {"P","P.","SP"},
+    "manhas ate 14h" : {"M","M.","M2.","M2","SM","SAM"}
     "Folgas" : "Mais de 5 folgas seguidas",
     "Consecutivos": "Mais de 6 dias consecutivos",
 
@@ -31,8 +32,9 @@ turnos_possiveis ={
     "SRT": {"SRT"}, #7.00
     "RT": {"SRT","T1","T1.","T2","T2."}, #7.25
     "P": {"P","SMP","SRMP","MP","M1P","M2P","AMP","SAMP","TO/P","SIMP","MEXP","CMP","M.P","M1.P","M2.P","M.P.","M1.P.","M2.P.","P.","SMP","SRMP.","MP.","M1P.","M2P.""AMP.""SAMP.","TO/P.","RE/P.","MEXP.","SP","SRMSP","MSP","M1SP","M2SP","SAMSP",'SMSP',"TO/SP","AMSP","RE/SP","MEXSP","CMSP","M.SP"},
-    "MEX" : {"MEX","MC","MSO","MEXSP","MEXP","RE/MEX","MEXCP","RE","RE/SP","RE/P","RE/CP"},
-    "dispensas": {"SAE","DM","A","FE","OS","EX","CP","CM","CT","AM","AT","SAM","SAT","SAMP","","F","f","TO","NU",'',""}, #4.00
+    "MEX" : {"MEX","MC","MSO","MEXSP","MEXP","RE/MEX","MEXCP","RE","RE/SP","RE/P","RE/CP"}, #4.00
+    "folgas possíveis": {'',"F","f",None,""},
+    "dispensas": {"SAE","DM","A","FE","OS","EX","CP","CM","CT","AM","AT","SAM","SAT","SAMP","","F","f","TO","NU",'',""},
     "Cameras": {"CM","CMP","CMSP","CMCP","M.CP","CT","CP","SRMCP","MCP","M1CP","M2CP","SAMCP","SMCP","TO/CP","AMCP","RE/CP","MEXCP","CMCP","M.CP","M1.CP","M2.CP","EX","C","SO","RE/EX","EXP"}#8.00
 }
 
@@ -88,11 +90,11 @@ def verificarFadiga(escala):
     turnos = []
     for t in raw:
         if t is None:
-            turnos.append("f")
+            turnos.append("")
         else:
             s = str(t).strip()
             if s == "" or s.lower() == "nan":
-                turnos.append("f")
+                turnos.append("")
             else:
                 turnos.append(s)
 
@@ -106,15 +108,18 @@ def verificarFadiga(escala):
     pernoites = set(combos.get("Pernoites", []))
     manhas = set(combos.get("Manhas", []))
     tardes = set(combos.get("Tardes", []))
+    m2 = set(combos.get("M2", []))
+
     # para evitar erros duplicados (mesmo tipo + mesmo dia)
     seen_errors = set()
-    # turnos_possiveis = [dispensas,folgas_possiveis,pernoites,manhas,tardes]
+
     for i in range(n):
         dia = i + 1
         turno_atual = turnos[i]
         turno_anterior = turnos[i - 1] if i > 0 else ""
         prox1 = turnos[i + 1] if i + 1 < n else ""
         prox2 = turnos[i + 2] if i + 2 < n else ""
+        prox3 = turnos[i + 3] if i + 3 < n else ""
 
         # dias consecutivos trabalhando
         if (turno_atual not in dispensas) and (turno_atual not in folgas_possiveis):
@@ -125,20 +130,33 @@ def verificarFadiga(escala):
             dias_seguidos = 0
 
         # --- Detecta consecutivos (6 ou mais dias consecutivos) ---
-        # condição onde pernoite está presente e o dia +2 não é dispensa
-        if dias_seguidos == 5 and (turno_atual in pernoites) and (prox2 not in dispensas):
+        # condição onde pernoite está presente e o dia +2 não é dispensa e o dia +3 é tudo menos manhã
+        if dias_seguidos == 5 and (turno_atual in pernoites) and (prox2 not in dispensas) and (prox3 in manhas):
             key = ("Consecutivos", dia)
             erro = combos["Consecutivos"]
             if key not in seen_errors:
                 adicionarErros(escala, erro, dia)
                 seen_errors.add(key)
             dias_seguidos = 0
-        
+
         # condição geral: mais de 5 dias consecutivos (>=6),
         # e próximos dois dias NÃO são dispensa -> gerar erro
-        if dias_seguidos > 5:
-            cond_prox_not_disp = (prox1 not in dispensas) and (prox2 not in dispensas)
-            if (turno_anterior not in pernoites) and cond_prox_not_disp:
+        if dias_seguidos > 5:           
+            if turno_atual in combos["manha ate 14h"] and prox1 not in dispensas and (prox2 not in combos["T2"] or prox2 not in ["Pernoite sozinho"]) :
+                key = ("Consecutivos", dia)
+                erro = combos["Consecutivos"]
+                if key not in seen_errors:
+                    adicionarErros(escala, erro, dia)
+                    seen_errors.add(key)
+                dias_seguidos = 0
+            elif turno_atual in combos["M1"] and prox1 not in dispensas and (prox2 not in combos["T1"] or prox2 not in ["Pernoite sozinho"]):
+                key = ("Consecutivos", dia)
+                erro = combos["Consecutivos"]
+                if key not in seen_errors:
+                    adicionarErros(escala, erro, dia)
+                    seen_errors.add(key)
+                dias_seguidos = 0
+            elif turno_atual in combos["T1"] and prox1 not in dispensas and prox2 not in ["Pernoite sozinho"]:
                 key = ("Consecutivos", dia)
                 erro = combos["Consecutivos"]
                 if key not in seen_errors:
@@ -164,7 +182,7 @@ def verificarFadiga(escala):
             folgas = 0
 
         # --- Erros envolvendo pernoite ---
-        if (turno_anterior in pernoites) and ( (turno_atual not in dispensas) or (prox1 in manhas) ):
+        if (turno_anterior in pernoites) and ( (turno_atual not in dispensas) or (prox1 in manhas)):
             key = ("erro pernoite", dia)
             erro = combos["erro pernoite"]
             if key not in seen_errors:
@@ -178,12 +196,12 @@ def verificarFadiga(escala):
             if key not in seen_errors:
                 adicionarErros(escala, erro, dia)
                 seen_errors.add(key)
-        for turno_procurado in turnos_possiveis.values():   
-            if turno_atual in turno_procurado:
+    #checa se todos os turnos digitados existem
+    for turno_procurado in turnos_possiveis.values():
+        if turno_atual in turno_procurado:
                 break
-        else:
-                erro = f"Turno {turno_atual} inválido!"
-                adicionarErros(escala,erro,dia)
-                
-    return st.session_state.df_erros
+    else:
+            erro = f"Turno {turno_atual} não existe"
+            adicionarErros(escala,erro,dia)
 
+    return st.session_state.df_erros
