@@ -181,6 +181,7 @@ st.header("Escala de Novembro")
 
 if st.button("Desfazer Alterações",icon=":material/refresh:"):
     carregar_arquivo()
+    limparErros()
 
 # Mostrar tabela
 if st.session_state.mostrar_tabela:
