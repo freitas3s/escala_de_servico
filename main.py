@@ -159,7 +159,7 @@ with col2:
 
 st.header("Escala de Novembro")
 
-if st.button("Carregar Escala Matriz",icon=":material/refresh:",help="Carrega a escala original e mostra uma tabela **EDITÁVEL** para você simular suas trocas. Caso queira resetar as alterações basta clicar aqui denovo."):
+if st.button("Carregar Escala Matriz",icon=":material/refresh:",help="Carrega a escala original e mostra uma tabela **EDITÁVEL** para você simular suas trocas. Caso queira resetar as alterações basta clicar aqui de novo."):
     carregar_arquivo()
 
 # Mostrar tabela
