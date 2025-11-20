@@ -198,16 +198,16 @@ if st.button("Carregar Escala Matriz",icon=":material/refresh:",help="Carrega a 
 if st.session_state.mostrar_tabela:
     if st.session_state.filtro_ativo:
         df_editado = dynamic_input_data_editor(
-        st.session_state.df_escalas,
-            key="editor_todos",
+            st.session_state.df_filtrado,
+            key="editor_filtrado",
             use_container_width=True,
-            hide_index=True,
             column_config={
                 "Nome": st.column_config.Column(disabled=True,pinned=True),
                 "CHM": st.column_config.Column(disabled=True,pinned=True),
             }
         )
         st.session_state.df_filtrado = df_editado.copy()
+        atualizar_escala(df_editado)
     else:
         df_editado = dynamic_input_data_editor(
         st.session_state.df_escalas,
@@ -227,3 +227,4 @@ if st.button("Verificar Fadiga",icon=":material/download_done:",help="Carrega to
 if not st.session_state.df_erros.empty:
     st.subheader("Erros Encontrados:")
     st.dataframe(st.session_state.df_erros, use_container_width=True, hide_index=True)
+
