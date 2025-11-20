@@ -68,9 +68,6 @@ def carregar_arquivo():
 
 def pesquisar_funcionario():
     termo = st.session_state.get("termo_pesquisa", "").strip().lower()
-    if st.session_state.escalas == []:
-        st.warning("Carregue uma escala primeiro!!")
-        return
     if not termo:
         st.info("Digite o nome do operador.")
         return
@@ -79,16 +76,11 @@ def pesquisar_funcionario():
         e for e in st.session_state.escalas
         if termo in str(e["Nome"]).lower()
     ]
-    if st.session_state.escalas == [] :
-        st.warning("Carregue uma escala antes!!")
-        return
     if not filtradas:
         st.warning(f"Operador '{termo}' não encontrado.")
         return
     st.session_state.df_filtrado = escalas_para_df(filtradas)
     st.session_state.filtro_ativo = True
-
-import streamlit as st
 
 def dynamic_input_data_editor(data, key, **_kwargs):
     changed_key = f'{key}__changed_state'
@@ -132,10 +124,6 @@ def executar_verificacao():
 
     st.session_state.escalas = df_para_escalas(df_para_analisar)
 
-    if not st.session_state.escalas:
-        st.warning("Nenhuma escala carregada")
-        return
-
     limparErros()
     for esc in st.session_state.escalas:
         verificarFadiga(esc)
@@ -146,7 +134,10 @@ def executar_verificacao():
             carga_horaria_maxima = 0.0
         if carga_horaria > carga_horaria_maxima:
             adicionarErros(esc, f"Carga Horária extrapolada {carga_horaria:.2f} de {carga_horaria_maxima}", 1)
-    st.success(f"Foram encontrados {len(st.session_state.df_erros)} erros.")
+    if not st.session_state.df_erros.empty:
+        st.error(f"Foram encontrados {len(st.session_state.df_erros)} erros.",icon= ":material/warning:")
+    else:
+        st.success("Nenhum erro encontrado", icon= ":material/check:")
 
 
 if "escalas" not in st.session_state:
@@ -182,16 +173,13 @@ with col2:
     if st.button("Buscar",icon=":material/search:",help="Filtra a escala baseado no que foi digitado, não é necessario digitar o nome inteiro pra busca funcionar."):
         pesquisar_funcionario()
     if st.button("Mostrar Todos",icon=":material/patient_list:",help="Mostra novamente toda a escala mantendo as alterações feitas."):
-        if st.session_state.escalas == []:
-            st.warning("Carregue uma escala primeiro!")
-        else:
-            st.session_state.df_filtrado = pd.DataFrame()
-            st.session_state.filtro_ativo = False
+        st.session_state.df_filtrado = pd.DataFrame()
+        st.session_state.filtro_ativo = False
 
 
 st.header("Escala de Novembro")
 
-if st.button("Carregar Escala Matriz",icon=":material/refresh:",help="Carrega a escala original e mostra uma tabela **EDITÁVEL** para você simular suas trocas. Caso queira resetar as alterações basta clicar aqui de novo."):
+if st.button("Desfazer Alterações",icon=":material/refresh:"):
     carregar_arquivo()
 
 # Mostrar tabela
@@ -225,6 +213,6 @@ if st.button("Verificar Fadiga",icon=":material/download_done:",help="Carrega to
     executar_verificacao()
 
 if not st.session_state.df_erros.empty:
-    st.subheader("Erros Encontrados:")
+    st.subheader("Erros Encontrados")
     st.dataframe(st.session_state.df_erros, use_container_width=True, hide_index=True)
 
