@@ -199,4 +199,4 @@ if st.button("Verificar Fadiga",icon=":material/download_done:",help="Carrega to
 
 if not st.session_state.df_erros.empty:
     st.subheader("Erros Encontrados:")
-    st.dataframe(st.session_state.df_erros, use_container_width=True)
+    st.dataframe(st.session_state.df_erros, use_container_width=True, hide_index=True)
