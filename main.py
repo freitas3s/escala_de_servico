@@ -85,6 +85,9 @@ def carregar_arquivo():
 
 def pesquisar_funcionario():
     termo = st.session_state.get("termo_pesquisa", "").strip().lower()
+    if st.session_state.escalas == []:
+        st.warning("Carregue uma escala primeiro!!")
+        return
     if not termo:
         st.info("Digite o nome do operador.")
         return
@@ -92,9 +95,6 @@ def pesquisar_funcionario():
         e for e in st.session_state.escalas
         if termo in str(e["Nome"]).lower()
     ]
-    if st.session_state.escalas ==[]:
-        st.warning("Carregue uma escala primeiro!!")
-        return
     if not filtradas:
         st.warning(f"Operador '{termo}' não encontrado.")
         st.session_state.df_filtrado = pd.DataFrame()
