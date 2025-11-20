@@ -92,7 +92,7 @@ def pesquisar_funcionario():
         e for e in st.session_state.escalas
         if termo in str(e["Nome"]).lower()
     ]
-    if not st.session_state.escalas:
+    if st.session_state.escalas ==[]:
         st.warning("Carregue uma escala primeiro!!")
         return
     if not filtradas:
