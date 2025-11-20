@@ -172,7 +172,11 @@ if st.session_state.mostrar_tabela:
             st.session_state.df_filtrado,
             key="editor_filtrado",
             use_container_width=True,
-            hide_index=True
+            hide_index=True,
+            column_config={
+                "Nome": st.column_config.Column(disabled=True,pinned=True),
+                "CHM": st.column_config.Column(disabled=True,pinned=True),
+            }
         )
         st.session_state.df_filtrado = df_editado.copy()
     else:
@@ -180,9 +184,11 @@ if st.session_state.mostrar_tabela:
             st.session_state.df_escalas,
             key="editor_todos",
             use_container_width=True,
-            hide_index= True
-
-
+            hide_index= True,
+            column_config={
+                "Nome": st.column_config.Column(disabled=True,pinned=True),
+                "CHM": st.column_config.Column(disabled=True,pinned=True),
+            }
         )
         st.session_state.df_escalas = df_editado.copy()
 

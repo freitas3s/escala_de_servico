@@ -142,7 +142,7 @@ def verificarFadiga(escala):
         # condição geral: mais de 5 dias consecutivos (>=6),
         # e próximos dois dias NÃO são dispensa -> gerar erro
         if dias_seguidos > 5:           
-            if turno_atual in combos["manha ate 14h"] and prox1 not in dispensas and (prox2 not in combos["T2"] or prox2 not in ["Pernoite sozinho"]) :
+            if turno_atual in combos["manhas ate 14h"] and prox1 not in dispensas and (prox2 not in combos["T2"] or prox2 not in ["Pernoite sozinho"]) :
                 key = ("Consecutivos", dia)
                 erro = combos["Consecutivos"]
                 if key not in seen_errors:
