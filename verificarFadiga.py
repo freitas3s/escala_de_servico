@@ -21,7 +21,7 @@ combos={
 
     }
 
-carga_horaria_dos_turnos ={
+turnos_possiveis ={
     "M": {"SAM","SAMSP","SAMP","SAMP.","SAMCP","M","MSP","MP","MP.","MCP","MSAP","SIMSP","SIMP","SIM","M.","M.SP","M.P","M.P.","SM","SMP","SMSP","SMCP,"},#7.75
     "M1": {"M1","M1SP","M1P","M1P.","M1.","M1.SP","M1.P","M1.P.","M1CP","SRM","SRMP","SRMSP","SRMCP"},#5.75
     "M2":{"M2","M2SP","M2P","M2P.","M2CP","M2.","M2.SP","M2.P","M2.P."}, #6.0
@@ -31,7 +31,8 @@ carga_horaria_dos_turnos ={
     "SRT": {"SRT"}, #7.00
     "RT": {"SRT","T1","T1.","T2","T2."}, #7.25
     "P": {"P","SMP","SRMP","MP","M1P","M2P","AMP","SAMP","TO/P","SIMP","MEXP","CMP","M.P","M1.P","M2.P","M.P.","M1.P.","M2.P.","P.","SMP","SRMP.","MP.","M1P.","M2P.""AMP.""SAMP.","TO/P.","RE/P.","MEXP.","SP","SRMSP","MSP","M1SP","M2SP","SAMSP",'SMSP',"TO/SP","AMSP","RE/SP","MEXSP","CMSP","M.SP"},
-    "MEX" : {"MEX","MC","MSO","MEXSP","MEXP","RE/MEX","MEXCP","RE","RE/SP","RE/P","RE/CP"}, #4.00
+    "MEX" : {"MEX","MC","MSO","MEXSP","MEXP","RE/MEX","MEXCP","RE","RE/SP","RE/P","RE/CP"},
+    "dispensas": {"SAE","DM","A","FE","OS","EX","CP","CM","CT","AM","AT","SAM","SAT","SAMP","","F","f","TO","NU",'',""}, #4.00
     "Cameras": {"CM","CMP","CMSP","CMCP","M.CP","CT","CP","SRMCP","MCP","M1CP","M2CP","SAMCP","SMCP","TO/CP","AMCP","RE/CP","MEXCP","CMCP","M.CP","M1.CP","M2.CP","EX","C","SO","RE/EX","EXP"}#8.00
 }
 
@@ -39,27 +40,27 @@ def verificarCargaHoraria(escala):
     carga_horaria = 0
 
     for turno in escala["Turnos"]:
-        if turno in carga_horaria_dos_turnos["M"]:
+        if turno in turnos_possiveis["M"]:
             carga_horaria += 7.75
-        elif turno in carga_horaria_dos_turnos["M1"]:
+        elif turno in turnos_possiveis["M1"]:
             carga_horaria += 5.75
-        elif turno in carga_horaria_dos_turnos["M2"]:
+        elif turno in turnos_possiveis["M2"]:
             carga_horaria += 6.00
-        elif turno in carga_horaria_dos_turnos["AM"]:
+        elif turno in turnos_possiveis["AM"]:
             carga_horaria += 2.58
-        elif turno in carga_horaria_dos_turnos["T"]:
+        elif turno in turnos_possiveis["T"]:
             carga_horaria += 9.25
-        elif turno in carga_horaria_dos_turnos["AT"]:
+        elif turno in turnos_possiveis["AT"]:
             carga_horaria += 3.08
-        elif turno in carga_horaria_dos_turnos["SRT"]:
+        elif turno in turnos_possiveis["SRT"]:
             carga_horaria += 7.00
-        elif turno in carga_horaria_dos_turnos["RT"]:
+        elif turno in turnos_possiveis["RT"]:
             carga_horaria += 7.25 
-        elif turno in carga_horaria_dos_turnos["MEX"]:
+        elif turno in turnos_possiveis["MEX"]:
             carga_horaria += 4.00
-        elif turno in carga_horaria_dos_turnos["Cameras"]:
+        elif turno in turnos_possiveis["Cameras"]:
             carga_horaria += 8.00 
-        if turno in carga_horaria_dos_turnos["P"]:
+        if turno in turnos_possiveis["P"]:
             carga_horaria += 7.75
     return carga_horaria
 
@@ -105,10 +106,9 @@ def verificarFadiga(escala):
     pernoites = set(combos.get("Pernoites", []))
     manhas = set(combos.get("Manhas", []))
     tardes = set(combos.get("Tardes", []))
-
     # para evitar erros duplicados (mesmo tipo + mesmo dia)
     seen_errors = set()
-
+    # turnos_possiveis = [dispensas,folgas_possiveis,pernoites,manhas,tardes]
     for i in range(n):
         dia = i + 1
         turno_atual = turnos[i]
@@ -133,7 +133,7 @@ def verificarFadiga(escala):
                 adicionarErros(escala, erro, dia)
                 seen_errors.add(key)
             dias_seguidos = 0
-
+        
         # condição geral: mais de 5 dias consecutivos (>=6),
         # e próximos dois dias NÃO são dispensa -> gerar erro
         if dias_seguidos > 5:
@@ -178,5 +178,12 @@ def verificarFadiga(escala):
             if key not in seen_errors:
                 adicionarErros(escala, erro, dia)
                 seen_errors.add(key)
-
+        for turno_procurado in turnos_possiveis.values():   
+            if turno_atual in turno_procurado:
+                break
+        else:
+                erro = f"Turno {turno_atual} inválido!"
+                adicionarErros(escala,erro,dia)
+                
     return st.session_state.df_erros
+

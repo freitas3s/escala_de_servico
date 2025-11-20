@@ -4,16 +4,17 @@ import re
 import streamlit as st
 
 # 1️⃣ Coloque o conteúdo do JSON da chave em um Secret chamado "GDRIVE_KEY"
-# Ex: st.secrets["GDRIVE_KEY"]
+# Ex: st.secrets["GDRIVE_KEY
+# SERVICE_ACCOUNT_INFO = st.secrets["GDRIVE_KEY"]
 
-SERVICE_ACCOUNT_INFO = st.secrets["GDRIVE_KEY"]
+SERVICE_ACCOUNT_INFO = r"C:\Users\guije\Documents\GitHub\escala_de_servico\healthy-keyword-475022-f9-87fd6c066547.json"
 
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/drive"
 ]
 
-creds = Credentials.from_service_account_info(SERVICE_ACCOUNT_INFO, scopes=SCOPES)
+creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_INFO, scopes=SCOPES)
 client = gspread.authorize(creds)
 
 planilha = client.open_by_key("1ry-PFpRg9iXwI2-YcSkP7pEsramIQfQjWSICSe434jA")
