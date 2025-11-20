@@ -8,24 +8,6 @@ st.set_page_config(page_title="Escala", layout="wide")
 # ----------------------
 # Inicialização do session_state
 # ----------------------
-if "escalas" not in st.session_state:
-    st.session_state.escalas = []
-
-
-if "df_escalas" not in st.session_state:
-    st.session_state.df_escalas = pd.DataFrame()
-
-if "df_filtrado" not in st.session_state:
-    st.session_state.df_filtrado = pd.DataFrame()
-
-if "filtro_ativo" not in st.session_state:
-    st.session_state.filtro_ativo = False
-
-if "df_erros" not in st.session_state:
-    st.session_state.df_erros = pd.DataFrame(columns=["Nome", "Dia", "Erro"])
-
-if "mostrar_tabela" not in st.session_state:
-    st.session_state.mostrar_tabela = False
 
 # ----------------------
 # Funções auxiliares
@@ -106,6 +88,32 @@ def pesquisar_funcionario():
     st.session_state.df_filtrado = escalas_para_df(filtradas)
     st.session_state.filtro_ativo = True
 
+import streamlit as st
+
+def dynamic_input_data_editor(data, key, **_kwargs):
+    changed_key = f'{key}__changed_state'
+    initial_data_key = f'{key}__initial_data'
+
+    def on_data_editor_changed():
+        if 'on_change' in _kwargs:
+            args = _kwargs.get('args', ())
+            kwargs = _kwargs.get('kwargs', {})
+            _kwargs['on_change'](*args, **kwargs)
+
+        st.session_state[changed_key] = True
+
+    if changed_key in st.session_state and st.session_state[changed_key]:
+        data = st.session_state[initial_data_key]
+        st.session_state[changed_key] = False
+    else:
+        st.session_state[initial_data_key] = data
+
+    __kwargs = _kwargs.copy()
+    __kwargs.update({'data': data, 'key': key, 'on_change': on_data_editor_changed})
+
+    return st.data_editor(**__kwargs)
+
+
 def atualizar_escala(df_editado):
     """Atualiza a lista de escalas principal a partir de um DataFrame editado"""
     if df_editado is None or df_editado.empty:
@@ -140,6 +148,25 @@ def executar_verificacao():
             adicionarErros(esc, f"Carga Horária extrapolada {carga_horaria:.2f} de {carga_horaria_maxima}", 1)
     st.success(f"Foram encontrados {len(st.session_state.df_erros)} erros.")
 
+
+if "escalas" not in st.session_state:
+    st.session_state.escalas = []
+    carregar_arquivo()
+if "df_escalas" not in st.session_state:
+    st.session_state.df_escalas = pd.DataFrame()
+
+if "df_filtrado" not in st.session_state:
+    st.session_state.df_filtrado = pd.DataFrame()
+
+if "filtro_ativo" not in st.session_state:
+    st.session_state.filtro_ativo = False
+
+if "df_erros" not in st.session_state:
+    st.session_state.df_erros = pd.DataFrame(columns=["Nome", "Dia", "Erro"])
+
+if "mostrar_tabela" not in st.session_state:
+    st.session_state.mostrar_tabela = False
+
 # ----------------------
 # Layout
 # ----------------------
@@ -170,9 +197,9 @@ if st.button("Carregar Escala Matriz",icon=":material/refresh:",help="Carrega a 
 # Mostrar tabela
 if st.session_state.mostrar_tabela:
     if st.session_state.filtro_ativo:
-        df_editado = st.data_editor(
-            st.session_state.df_filtrado,
-            key="editor_filtrado",
+        df_editado = dynamic_input_data_editor(
+        st.session_state.df_escalas,
+            key="editor_todos",
             use_container_width=True,
             hide_index=True,
             column_config={
@@ -182,11 +209,11 @@ if st.session_state.mostrar_tabela:
         )
         st.session_state.df_filtrado = df_editado.copy()
     else:
-        df_editado = st.data_editor(
-            st.session_state.df_escalas,
+        df_editado = dynamic_input_data_editor(
+        st.session_state.df_escalas,
             key="editor_todos",
             use_container_width=True,
-            hide_index= True,
+            hide_index=True,
             column_config={
                 "Nome": st.column_config.Column(disabled=True,pinned=True),
                 "CHM": st.column_config.Column(disabled=True,pinned=True),
