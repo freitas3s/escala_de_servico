@@ -92,6 +92,9 @@ def pesquisar_funcionario():
         e for e in st.session_state.escalas
         if termo in str(e["Nome"]).lower()
     ]
+    if not st.session_state.escalas:
+        st.warning("Carregue uma escala primeiro!!")
+        return
     if not filtradas:
         st.warning(f"Operador '{termo}' não encontrado.")
         st.session_state.df_filtrado = pd.DataFrame()
@@ -139,25 +142,24 @@ def executar_verificacao():
 # ----------------------
 # Layout
 # ----------------------
-st.title("📋 Escala RSP")
-st.markdown("---")
-st.header("🔎 Pesquisar Operador")
+st.title("Escala RSP")
 
+st.subheader("Buscar Operador")
 col1, col2 = st.columns([3,1])
 with col1:
-    termo_pesquisa = st.text_input("Nome do operador", key="termo_pesquisa", on_change=pesquisar_funcionario)
+    termo_pesquisa = st.text_input("",placeholder="Nome do operador", key="termo_pesquisa", on_change=pesquisar_funcionario)
 
 with col2:
-    if st.button("🔎 Pesquisar"):
+    if st.button("Buscar",icon=":material/search",help="Filtra a escala baseado no que foi digitado, não é necessario digitar o nome inteiro pra busca funcionar."):
         pesquisar_funcionario()
-    if st.button("Listar Todos"):
+    if st.button("Mostrar Todos",icon=":material/patient_list:",help="Mostra novamente toda a escala mantendo as alterações feitas."):
         st.session_state.df_filtrado = pd.DataFrame()
         st.session_state.filtro_ativo = False
 
-st.markdown("---")
+
 st.header("Escala de Novembro")
 
-if st.button("Carregar Escala Original"):
+if st.button("Carregar Escala Matriz",icon=":material/refresh:",help="Carrega a escala original e mostra uma tabela **EDITÁVEL** para você simular suas trocas. Caso queira resetar as alterações basta clicar aqui denovo."):
     carregar_arquivo()
 
 # Mostrar tabela
@@ -166,7 +168,8 @@ if st.session_state.get("mostrar_tabela", False):
         df_editado = st.data_editor(
             st.session_state.df_filtrado,
             key="editor_filtrado",
-            use_container_width=True
+            use_container_width=True,
+            hide_index=True
         )
         st.session_state.df_filtrado = df_editado.copy()
         atualizar_escala(df_editado)
@@ -174,11 +177,12 @@ if st.session_state.get("mostrar_tabela", False):
         df_editado = st.data_editor(
             st.session_state.df_escalas,
             key="editor_todos",
-            use_container_width=True
+            use_container_width=True,
+            hide_index=True
         )
         st.session_state.df_escalas = df_editado.copy()
 
-if st.button("Verificar Fadiga"):
+if st.button("Verificar Fadiga",icon=":material/download_done:",help="Carrega todas as suas edições e mostra se tem algum erro de fadiga."):
     executar_verificacao()
 
 if not st.session_state.df_erros.empty:

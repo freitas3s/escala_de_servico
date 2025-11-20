@@ -21,7 +21,7 @@ combos={
 
     }
 
-carga_horaria_dos_turnos ={
+turnos_possiveis ={
     "M": {"SAM","SAMSP","SAMP","SAMP.","SAMCP","M","MSP","MP","MP.","MCP","MSAP","SIMSP","SIMP","SIM","M.","M.SP","M.P","M.P.","SM","SMP","SMSP","SMCP,"},#7.75
     "M1": {"M1","M1SP","M1P","M1P.","M1.","M1.SP","M1.P","M1.P.","M1CP","SRM","SRMP","SRMSP","SRMCP"},#5.75
     "M2":{"M2","M2SP","M2P","M2P.","M2CP","M2.","M2.SP","M2.P","M2.P."}, #6.0
@@ -39,27 +39,27 @@ def verificarCargaHoraria(escala):
     carga_horaria = 0
 
     for turno in escala["Turnos"]:
-        if turno in carga_horaria_dos_turnos["M"]:
+        if turno in turnos_possiveis["M"]:
             carga_horaria += 7.75
-        elif turno in carga_horaria_dos_turnos["M1"]:
+        elif turno in turnos_possiveis["M1"]:
             carga_horaria += 5.75
-        elif turno in carga_horaria_dos_turnos["M2"]:
+        elif turno in turnos_possiveis["M2"]:
             carga_horaria += 6.00
-        elif turno in carga_horaria_dos_turnos["AM"]:
+        elif turno in turnos_possiveis["AM"]:
             carga_horaria += 2.58
-        elif turno in carga_horaria_dos_turnos["T"]:
+        elif turno in turnos_possiveis["T"]:
             carga_horaria += 9.25
-        elif turno in carga_horaria_dos_turnos["AT"]:
+        elif turno in turnos_possiveis["AT"]:
             carga_horaria += 3.08
-        elif turno in carga_horaria_dos_turnos["SRT"]:
+        elif turno in turnos_possiveis["SRT"]:
             carga_horaria += 7.00
-        elif turno in carga_horaria_dos_turnos["RT"]:
+        elif turno in turnos_possiveis["RT"]:
             carga_horaria += 7.25 
-        elif turno in carga_horaria_dos_turnos["MEX"]:
+        elif turno in turnos_possiveis["MEX"]:
             carga_horaria += 4.00
-        elif turno in carga_horaria_dos_turnos["Cameras"]:
+        elif turno in turnos_possiveis["Cameras"]:
             carga_horaria += 8.00 
-        if turno in carga_horaria_dos_turnos["P"]:
+        if turno in turnos_possiveis["P"]:
             carga_horaria += 7.75
     return carga_horaria
 
@@ -178,5 +178,11 @@ def verificarFadiga(escala):
             if key not in seen_errors:
                 adicionarErros(escala, erro, dia)
                 seen_errors.add(key)
+        for turno_procurado in turnos_possiveis.values:
+            if turno_atual in turno_procurado:
+                break
+        else:
+            erro = f"Turno {turno_atual} não existe"
+            adicionarErros(escala,erro,dia)
 
     return st.session_state.df_erros
