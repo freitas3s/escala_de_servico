@@ -169,7 +169,7 @@ if st.session_state.get("mostrar_tabela", False):
             use_container_width=True
         )
         st.session_state.df_filtrado = df_editado.copy()
-        atualizar_escala(df_editado)
+        
     else:
         df_editado = st.data_editor(
             st.session_state.df_escalas,
