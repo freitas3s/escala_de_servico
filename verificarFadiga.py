@@ -178,10 +178,10 @@ def verificarFadiga(escala):
             if key not in seen_errors:
                 adicionarErros(escala, erro, dia)
                 seen_errors.add(key)
-        for turno_procurado in turnos_possiveis.values():
-            if turno_atual in turno_procurado:
+    for turno_procurado in turnos_possiveis.values():
+        if turno_atual in turno_procurado:
                 break
-        else:
+    else:
             erro = f"Turno {turno_atual} não existe"
             adicionarErros(escala,erro,dia)
 
