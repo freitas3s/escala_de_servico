@@ -153,8 +153,11 @@ with col2:
     if st.button("Buscar",icon=":material/search:",help="Filtra a escala baseado no que foi digitado, não é necessario digitar o nome inteiro pra busca funcionar."):
         pesquisar_funcionario()
     if st.button("Mostrar Todos",icon=":material/patient_list:",help="Mostra novamente toda a escala mantendo as alterações feitas."):
-        st.session_state.df_filtrado = pd.DataFrame()
-        st.session_state.filtro_ativo = False
+        if st.session_state.escalas == []:
+            st.warning("Carregue uma escala primeiro!")
+        else:
+            st.session_state.df_filtrado = pd.DataFrame()
+            st.session_state.filtro_ativo = False
 
 
 st.header("Escala de Novembro")
