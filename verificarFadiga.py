@@ -15,7 +15,7 @@ combos={
     "T2":["T2","T2."],
     "Pernoites" : ["P","SMP","SRMP","MP","M1P","M2P","AMP","SAMP","TO/P","SIMP","MEXP","CMP","M.P","M1.P","M2.P","M.P.","M1.P.","M2.P.","P.","SMP","SRMP.","MP.","M1P.","M2P.""AMP.""SAMP.","TO/P.","RE/P.","MEXP.","SP","SRMSP","MSP","M1SP","M2SP","SAMSP",'SMSP',"TO/SP","AMSP","RE/SP","MEXSP","CMSP","M.SP"],
     "Pernoite sozinho" : {"P","P.","SP"},
-    "manhas ate 14h" : {"M","M.","M2.","M2","SM","SAM"}
+    "manhas ate 14h" : {"M","M.","M2.","M2","SM","SAM"},
     "Folgas" : "Mais de 5 folgas seguidas",
     "Consecutivos": "Mais de 6 dias consecutivos",
 
