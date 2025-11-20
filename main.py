@@ -176,6 +176,9 @@ if st.session_state.mostrar_tabela:
             column_config={
                 "Nome": st.column_config.Column(disabled=True,pinned=True),
                 "CHM": st.column_config.Column(disabled=True,pinned=True),
+                **{str(i): st.column_config.Column(validate=None)
+                for i in st.session_state.df_filtrado.columns if i not in ("Nome", "CHM")
+                }
             }
         )
         st.session_state.df_filtrado = df_editado.copy()
@@ -188,7 +191,11 @@ if st.session_state.mostrar_tabela:
             column_config={
                 "Nome": st.column_config.Column(disabled=True,pinned=True),
                 "CHM": st.column_config.Column(disabled=True,pinned=True),
+                **{str(i): st.column_config.Column(validate=None)
+                for i in st.session_state.df_filtrado.columns if i not in ("Nome", "CHM")
+                }
             }
+
         )
         st.session_state.df_escalas = df_editado.copy()
 
