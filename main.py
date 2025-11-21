@@ -5,9 +5,6 @@ import pandas as pd
 
 st.set_page_config(page_title="Escala", layout="wide")
 
-# ----------------------
-# Inicialização do session_state
-# ----------------------
 
 # ----------------------
 # Funções auxiliares
@@ -175,6 +172,8 @@ with col2:
     if st.button("Mostrar Todos",icon=":material/patient_list:",help="Mostra novamente toda a escala mantendo as alterações feitas."):
         st.session_state.df_filtrado = pd.DataFrame()
         st.session_state.filtro_ativo = False
+
+
 
 
 st.header("Escala de Novembro")
