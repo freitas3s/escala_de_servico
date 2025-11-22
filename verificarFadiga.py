@@ -42,7 +42,6 @@ def verificarCargaHoraria(escala):
     carga_horaria = 0
     
     for turno in escala["Turnos"]:
-        if not escala["Turnos"][6]:
             if turno in turnos_possiveis["M"]:
                 carga_horaria += 7.75
             elif turno in turnos_possiveis["M1"]:
