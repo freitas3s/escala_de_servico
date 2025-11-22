@@ -15,7 +15,7 @@ def copiarEscala(mes):
         "https://www.googleapis.com/auth/drive"
     ]
 
-    creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_INFO, scopes=SCOPES)
+    creds = Credentials.from_service_account_info(SERVICE_ACCOUNT_INFO, scopes=SCOPES)
     client = gspread.authorize(creds)
 
     planilha = client.open_by_key(f"{ID_PLANILHAS[mes]}")
