@@ -3,13 +3,13 @@ from google.oauth2.service_account import Credentials
 import re
 import streamlit as st
 import datetime
-# 1️⃣ Coloque o conteúdo do JSON da chave em um Secret chamado "GDRIVE_KEY"
-# Ex: st.secrets["GDRIVE_KEY
+import calendar
+
 # SERVICE_ACCOUNT_INFO = st.secrets["GDRIVE_KEY"]
 
 def copiarEscala(mes):
     SERVICE_ACCOUNT_INFO = r"C:\Users\guije\Documents\GitHub\escala_de_servico\chave.JSON"
-
+    meses_com_31_dias = {1, 3, 5, 7, 8, 10, 12}
     SCOPES = [
         "https://www.googleapis.com/auth/spreadsheets",
         "https://www.googleapis.com/auth/drive"
@@ -21,15 +21,15 @@ def copiarEscala(mes):
     planilha = client.open_by_key(f"{ID_PLANILHAS[mes]}")
     aba = planilha.worksheet("ESCALA")
 
-    # Leitura dos dados
+
     nomes_1 = aba.get("B52:B74")
-    turnos_1 = aba.get("E52:AV74", pad_values=True)
-    carga_horaria_mensal_1 = aba.get("AY52:AY74")
+    turnos_1 = aba.get("M52:AQ74", pad_values=True) if mes in meses_com_31_dias else aba.get("M52:AP74", pad_values=True)
+    carga_horaria_mensal_1 = aba.get("AY52:AY74")if mes in meses_com_31_dias else aba.get("AT52:AT74")
 
     ultima_linha = len(aba.col_values(1))
     nomes_2 = aba.get(f"B80:B{ultima_linha}")
-    turnos_2 = aba.get(f"E80:AV{ultima_linha}", pad_values=True)
-    carga_horaria_mensal_2= aba.get(f"AY80:AY{ultima_linha}")
+    turnos_2 = aba.get(f"M80:AQ{ultima_linha}", pad_values=True)if mes in meses_com_31_dias else aba.get(f"M80:AP{ultima_linha}", pad_values=True)
+    carga_horaria_mensal_2= aba.get(f"AY80:AY{ultima_linha}") if mes in meses_com_31_dias else aba.get(f"AT80:AT{ultima_linha}")
 
     nomes = nomes_1 + nomes_2
     turnos = turnos_1 + turnos_2
@@ -104,16 +104,16 @@ DIAS_SEMANA = {
 }
 
 ID_PLANILHAS = {
-    1: "janeiro",
-    2: "Fevereiro",
-    3: "Março",
-    4: "Abril",
-    5: "Maio",
-    6: "Junho",
-    7: "Julho",
-    8: "Agosto",
-    9: "Setembro",
-    10: "Outubro",
+    1: None,
+    2: None,
+    3: None,
+    4: None,
+    5: None,
+    6: None,
+    7: None,
+    8: None,
+    9: None,
+    10: None,
     11: "1ry-PFpRg9iXwI2-YcSkP7pEsramIQfQjWSICSe434jA",
     12: "1npvVB_9Akl9IK2lfDGMDPha0nLfGyb3hJhmteFqN-KA",
 }
@@ -134,50 +134,41 @@ MESES ={
     12: "Dezembro",
 
 }
-
 def gerar_colunas_com_dia_semana(ano, mes):
-    import calendar
-
-    # Dia inicial → 24 do mês anterior
-    if mes == 1:
-        ano_anterior = ano - 1
-        mes_anterior = 12
-    else:
-        ano_anterior = ano
-        mes_anterior = mes - 1
-
-    dia_inicial = 24
-
-    # Quantidade de dias do mês atual
-    dias_no_mes_atual = calendar.monthrange(ano, mes)[1]
 
     dias_semana = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sab", "Dom"]
 
+    data_atual = datetime.date(ano, mes, 1)
+    dias_no_mes = calendar.monthrange(ano, mes)[1]
+    data_final = datetime.date(ano, mes, dias_no_mes)
+
     colunas = []
 
-    # 1️⃣ Adiciona os dias 24 → último dia do mês anterior
-    dias_mes_anterior = calendar.monthrange(ano_anterior, mes_anterior)[1]
-    for dia in range(dia_inicial, dias_mes_anterior + 1):
-        data_atual = datetime.date(ano_anterior, mes_anterior, dia)
+    FERIADOS = {
+        datetime.datetime.strptime(d, "%Y-%m-%d").date()
+        for d in FERIADOS_DF.keys()
+    }
+
+    while data_atual <= data_final:
         nome_semana = dias_semana[data_atual.weekday()]
 
-        if data_atual in FERIADOS_DF:
-            texto = f"{dia:02d}/{nome_semana}"
+        
+        if data_atual in FERIADOS:
+            marcador = "🏖️"     
+        elif nome_semana == "Sab":
+            marcador = "🔴"     
+        elif nome_semana == "Dom":
+            marcador = "🔴"     
         else:
-            texto = f"{dia:02d}/{nome_semana}"
+            marcador = ""
+
+        
+        if marcador:
+            texto = f"{data_atual.day:02d}\n{nome_semana} {marcador}"
+        else:
+            texto = f"{data_atual.day:02d}\n{nome_semana}"
 
         colunas.append(texto)
-
-    # 2️⃣ Adiciona os dias 1 → último do mês atual
-    for dia in range(1, dias_no_mes_atual + 1):
-        data_atual = datetime.date(ano, mes, dia)
-        nome_semana = dias_semana[data_atual.weekday()]
-
-        if data_atual in FERIADOS_DF:
-            texto = f"{dia:02d}/{nome_semana}"
-        else:
-            texto = f"{dia:02d}/{nome_semana}"
-
-        colunas.append(texto)
+        data_atual += datetime.timedelta(days=1)
 
     return colunas

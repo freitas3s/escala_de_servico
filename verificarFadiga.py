@@ -40,30 +40,31 @@ turnos_possiveis ={
 
 def verificarCargaHoraria(escala):
     carga_horaria = 0
-
+    
     for turno in escala["Turnos"]:
-        if turno in turnos_possiveis["M"]:
-            carga_horaria += 7.75
-        elif turno in turnos_possiveis["M1"]:
-            carga_horaria += 5.75
-        elif turno in turnos_possiveis["M2"]:
-            carga_horaria += 6.00
-        elif turno in turnos_possiveis["AM"]:
-            carga_horaria += 2.58
-        elif turno in turnos_possiveis["T"]:
-            carga_horaria += 9.25
-        elif turno in turnos_possiveis["AT"]:
-            carga_horaria += 3.08
-        elif turno in turnos_possiveis["SRT"]:
-            carga_horaria += 7.00
-        elif turno in turnos_possiveis["RT"]:
-            carga_horaria += 7.25 
-        elif turno in turnos_possiveis["MEX"]:
-            carga_horaria += 4.00
-        elif turno in turnos_possiveis["Cameras"]:
-            carga_horaria += 8.00 
-        if turno in turnos_possiveis["P"]:
-            carga_horaria += 7.75
+        if not escala["Turnos"][6]:
+            if turno in turnos_possiveis["M"]:
+                carga_horaria += 7.75
+            elif turno in turnos_possiveis["M1"]:
+                carga_horaria += 5.75
+            elif turno in turnos_possiveis["M2"]:
+                carga_horaria += 6.00
+            elif turno in turnos_possiveis["AM"]:
+                carga_horaria += 2.58
+            elif turno in turnos_possiveis["T"]:
+                carga_horaria += 9.25
+            elif turno in turnos_possiveis["AT"]:
+                carga_horaria += 3.08
+            elif turno in turnos_possiveis["SRT"]:
+                carga_horaria += 7.00
+            elif turno in turnos_possiveis["RT"]:
+                carga_horaria += 7.25 
+            elif turno in turnos_possiveis["MEX"]:
+                carga_horaria += 4.00
+            elif turno in turnos_possiveis["Cameras"]:
+                carga_horaria += 8.00 
+            if turno in turnos_possiveis["P"]:
+                carga_horaria += 7.75
     return carga_horaria
 
 dia = 1
