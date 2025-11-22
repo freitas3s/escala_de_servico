@@ -253,7 +253,7 @@ if st.session_state.mostrar_tabela:
             # ajuda (help) com o texto do cabeçalho para feriado/sáb/dom já com emoji vindo de gerar_colunas...
             base_column_config[col] = st.column_config.Column(
                 help=f"Turno do dia {col}",
-                width=100,
+                width=80,
             )
 
     if st.session_state.filtro_ativo:
