@@ -5,10 +5,10 @@ import streamlit as st
 import datetime
 import calendar
 
-# SERVICE_ACCOUNT_INFO = st.secrets["GDRIVE_KEY"]
+SERVICE_ACCOUNT_INFO = st.secrets["GDRIVE_KEY"]
 
 def copiarEscala(mes):
-    SERVICE_ACCOUNT_INFO = r"C:\Users\guije\Documents\GitHub\escala_de_servico\chave.JSON"
+
     meses_com_31_dias = {1, 3, 5, 7, 8, 10, 12}
     SCOPES = [
         "https://www.googleapis.com/auth/spreadsheets",
