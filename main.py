@@ -244,7 +244,7 @@ if st.session_state.mostrar_tabela:
     # cria column_config dinâmico baseado nas colunas reais do df (Nome/CHM + dias dinâmicos)
     base_column_config = {
         "Nome": st.column_config.Column(disabled=True, pinned=True),
-        "CHM": st.column_config.Column(disabled=True, pinned=True),
+        "CHM": st.column_config.Column(disabled=True),
     }
 
     # adiciona colunas de dia automaticamente
@@ -253,7 +253,7 @@ if st.session_state.mostrar_tabela:
             # ajuda (help) com o texto do cabeçalho para feriado/sáb/dom já com emoji vindo de gerar_colunas...
             base_column_config[col] = st.column_config.Column(
                 help=f"Turno do dia {col}",
-                
+                width="small"
             )
 
     if st.session_state.filtro_ativo:
