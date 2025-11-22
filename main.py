@@ -1,7 +1,8 @@
 from verificarFadiga import verificarFadiga, limparErros, verificarCargaHoraria, adicionarErros
-from copiarEscalaDrive import copiarEscala
+from copiarEscalaDrive import copiarEscala,gerarDiasDaSemana,MESES
 import streamlit as st
 import pandas as pd
+import datetime
 
 st.set_page_config(page_title="Escala", layout="wide")
 
@@ -51,9 +52,9 @@ def df_para_escalas(df): # coloca as alterações no dict
         })
     return novas
 
-def carregar_arquivo():
+def carregar_arquivo(mes=None):
     try:
-        dados = copiarEscala() or []
+        dados = copiarEscala(mes) or []
         st.session_state.escalas = dados #lista de dict escala
         st.session_state.df_escalas = escalas_para_df(dados)# dataframe da escala
         st.session_state.df_filtrado = pd.DataFrame() 
@@ -136,22 +137,21 @@ def executar_verificacao():
     else:
         st.success("Nenhum erro encontrado", icon= ":material/check:")
 
+#inicia as variaveis de sessão
 
+if "mes" not in st.session_state:
+    st.session_state.mes = datetime.datetime.now().month
 if "escalas" not in st.session_state:
     st.session_state.escalas = []
     carregar_arquivo()
 if "df_escalas" not in st.session_state:
     st.session_state.df_escalas = pd.DataFrame()
-
 if "df_filtrado" not in st.session_state:
     st.session_state.df_filtrado = pd.DataFrame()
-
 if "filtro_ativo" not in st.session_state:
     st.session_state.filtro_ativo = False
-
 if "df_erros" not in st.session_state:
     st.session_state.df_erros = pd.DataFrame(columns=["Nome", "Dia", "Erro"])
-
 if "mostrar_tabela" not in st.session_state:
     st.session_state.mostrar_tabela = False
 
@@ -173,13 +173,18 @@ with col2:
         st.session_state.df_filtrado = pd.DataFrame()
         st.session_state.filtro_ativo = False
 
+if st.button(f"Escala de {MESES[datetime.datetime.now().month]}",icon=":material/calendar_month:"):
+    st.session_state.mes = datetime.datetime.now().month
+    carregar_arquivo(st.session_state.mes)
 
+if st.button(f"Escala de {MESES[datetime.datetime.now().month + 1]}",icon=":material/calendar_month:"):
+    st.session_state.mes = datetime.datetime.now().month + 1
+    carregar_arquivo(st.session_state.mes)
 
-
-st.header("Escala de Novembro")
+st.header(f"Escala de {MESES[st.session_state.mes]}")
 
 if st.button("Desfazer Alterações",icon=":material/refresh:"):
-    carregar_arquivo()
+    carregar_arquivo(st.session_state.mes)
     limparErros()
 
 # Mostrar tabela
