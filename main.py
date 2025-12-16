@@ -228,7 +228,7 @@ with col2:
 if st.button(f"Escala de {MESES[datetime.datetime.now().month]}", icon=":material/calendar_month:"):
     st.session_state.mes =  datetime.datetime.now().month
     carregar_arquivo(st.session_state.mes)
-proximo_mes = st.session_state.mes + 1 if st.session_state.mes < 12 else 1
+proximo_mes = datetime.datetime.now().month + 1 if datetime.datetime.now().month < 12 else 1
 if st.button(f"Escala de {MESES[proximo_mes]}", icon=":material/calendar_month:"):
     st.session_state.mes =  proximo_mes
     carregar_arquivo(st.session_state.mes)
