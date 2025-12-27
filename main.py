@@ -100,7 +100,7 @@ def carregar_arquivo(mes=None):
         st.session_state.mostrar_tabela = True
         st.success("Escala carregada com sucesso!")
     except Exception as e:
-        st.error(f"Falha ao carregar a escala, escala em confecção.", icon=":material/warning:")
+        st.error(f"Falha ao carregar a escala, escala em confecção.")
 
 
 def pesquisar_funcionario():
