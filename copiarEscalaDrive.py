@@ -22,14 +22,14 @@ def copiarEscala(mes):
     aba = planilha.worksheet("ESCALA")
 
 
-    nomes_1 = aba.get("B52:B74")
-    turnos_1 = aba.get("M52:AQ74", pad_values=True) if mes in meses_com_31_dias else aba.get("M52:AP74", pad_values=True)
-    carga_horaria_mensal_1 = aba.get("AY52:AY74")if mes in meses_com_31_dias else aba.get("AT52:AT74")
+    nomes_1 = aba.get("C53:C75")
+    turnos_1 = aba.get("N53:AR75", pad_values=True) if mes in meses_com_31_dias else aba.get("N53:AR75", pad_values=True)
+    carga_horaria_mensal_1 = aba.get("AU53:AU75")
 
     ultima_linha = len(aba.col_values(1))
-    nomes_2 = aba.get(f"B80:B{ultima_linha}")
-    turnos_2 = aba.get(f"M80:AQ{ultima_linha}", pad_values=True)if mes in meses_com_31_dias else aba.get(f"M80:AP{ultima_linha}", pad_values=True)
-    carga_horaria_mensal_2= aba.get(f"AY80:AY{ultima_linha}") if mes in meses_com_31_dias else aba.get(f"AT80:AT{ultima_linha}")
+    nomes_2 = aba.get(f"C81:C{ultima_linha}")
+    turnos_2 = aba.get(f"N81:AR{ultima_linha}", pad_values=True)if mes in meses_com_31_dias else aba.get(f"N81:AR{ultima_linha}", pad_values=True)
+    carga_horaria_mensal_2= aba.get(f"AU81:AU{ultima_linha}")
 
     nomes = nomes_1 + nomes_2
     turnos = turnos_1 + turnos_2
@@ -104,7 +104,7 @@ DIAS_SEMANA = {
 }
 
 ID_PLANILHAS = {
-    1: None,
+    1: "1G7Jc21d9VGSiyObP4awVkAsO9f9tacGx9oW4HwnRRFs",
     2: None,
     3: None,
     4: None,
