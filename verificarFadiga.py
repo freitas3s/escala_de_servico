@@ -42,6 +42,7 @@ def verificarCargaHoraria(escala):
     carga_horaria = 0
     
     for turno in escala["Turnos"]:
+        if not escala["Turnos"][6]:
             if turno in turnos_possiveis["M"]:
                 carga_horaria += 7.75
             elif turno in turnos_possiveis["M1"]:
@@ -80,12 +81,14 @@ def adicionarErros(escala, erro, dia):
 def limparErros():
     st.session_state.df_erros = st.session_state.df_erros.iloc[0:0]
 
-def verificarFadiga(escala):
+def verificarFadiga_pura(escala):
     """
-    Versão corrigida e deduplicada da verificação de fadiga.
-    Retorna o DataFrame de erros atualizado em st.session_state.df_erros.
+    Versão pura da verificação de fadiga.
+    NÃO usa Streamlit.
+    Retorna lista de erros.
     """
-    # Normaliza turnos (None / "" / nan -> 'f')
+    erros = []
+
     raw = escala.get("Turnos", []) or []
     turnos = []
     for t in raw:
@@ -102,15 +105,12 @@ def verificarFadiga(escala):
     dias_seguidos = 0
     folgas = 0
 
-    # precomputar conjuntos (usar lower() se quiser normalizar)
     dispensas = set(combos.get("dispensas", []))
     folgas_possiveis = set(combos.get("folgas possíveis", []))
     pernoites = set(combos.get("Pernoites", []))
     manhas = set(combos.get("Manhas", []))
     tardes = set(combos.get("Tardes", []))
-    m2 = set(combos.get("M2", []))
 
-    # para evitar erros duplicados (mesmo tipo + mesmo dia)
     seen_errors = set()
 
     for i in range(n):
@@ -121,7 +121,6 @@ def verificarFadiga(escala):
         prox2 = turnos[i + 2] if i + 2 < n else ""
         prox3 = turnos[i + 3] if i + 3 < n else ""
 
-        # dias consecutivos trabalhando
         if (turno_atual not in dispensas) and (turno_atual not in folgas_possiveis):
             dias_seguidos += 1
         elif (turno_atual in folgas_possiveis) and (turno_anterior in pernoites):
@@ -129,79 +128,46 @@ def verificarFadiga(escala):
         else:
             dias_seguidos = 0
 
-        # --- Detecta consecutivos (6 ou mais dias consecutivos) ---
-        # condição onde pernoite está presente e o dia +2 não é dispensa e o dia +3 é tudo menos manhã
-        if dias_seguidos == 5 and (turno_atual in pernoites) and (prox2 not in dispensas) and (prox3 in manhas):
+        if dias_seguidos > 5:
             key = ("Consecutivos", dia)
-            erro = combos["Consecutivos"]
             if key not in seen_errors:
-                adicionarErros(escala, erro, dia)
+                erros.append({
+                    "Nome": escala.get("Nome"),
+                    "Dia": dia,
+                    "Erro": combos["Consecutivos"]
+                })
                 seen_errors.add(key)
             dias_seguidos = 0
 
-        # condição geral: mais de 5 dias consecutivos (>=6),
-        # e próximos dois dias NÃO são dispensa -> gerar erro
-        if dias_seguidos > 5:           
-            if turno_atual in combos["manhas ate 14h"] and prox1 not in dispensas and (prox2 not in combos["T2"] or prox2 not in ["Pernoite sozinho"]) :
-                key = ("Consecutivos", dia)
-                erro = combos["Consecutivos"]
-                if key not in seen_errors:
-                    adicionarErros(escala, erro, dia)
-                    seen_errors.add(key)
-                dias_seguidos = 0
-            elif turno_atual in combos["M1"] and prox1 not in dispensas and (prox2 not in combos["T1"] or prox2 not in ["Pernoite sozinho"]):
-                key = ("Consecutivos", dia)
-                erro = combos["Consecutivos"]
-                if key not in seen_errors:
-                    adicionarErros(escala, erro, dia)
-                    seen_errors.add(key)
-                dias_seguidos = 0
-            elif turno_atual in combos["T1"] and prox1 not in dispensas and prox2 not in ["Pernoite sozinho"]:
-                key = ("Consecutivos", dia)
-                erro = combos["Consecutivos"]
-                if key not in seen_errors:
-                    adicionarErros(escala, erro, dia)
-                    seen_errors.add(key)
-                dias_seguidos = 0
-
-        # --- Folgas seguidas ---
-        if turno_atual in folgas_possiveis:
-            folgas += 1
-        else:
-            folgas = 0
-
-        if folgas > 5 and (i - 6) >= 0:
-            # verificar se dia de -6 não foi pernoite
-            if turnos[i - 6] not in pernoites:
-                day_to_report = max(1, i - 4)  # garanta >= 1
-                key = ("Folgas", day_to_report)
-                erro = combos["Folgas"]
-                if key not in seen_errors:
-                    adicionarErros(escala, erro, day_to_report)
-                    seen_errors.add(key)
-            folgas = 0
-
-        # --- Erros envolvendo pernoite ---
-        if (turno_anterior in pernoites) and ( (turno_atual not in dispensas) or (prox1 in manhas)):
+        if turno_anterior in pernoites and turno_atual not in dispensas:
             key = ("erro pernoite", dia)
-            erro = combos["erro pernoite"]
             if key not in seen_errors:
-                adicionarErros(escala, erro, dia)
+                erros.append({
+                    "Nome": escala.get("Nome"),
+                    "Dia": dia,
+                    "Erro": combos["erro pernoite"]
+                })
                 seen_errors.add(key)
 
-        # --- Erros tarde -> manhã ---
-        if (turno_atual in tardes) and (prox1 in manhas) and (prox1 != ""):
+        if turno_atual in tardes and prox1 in manhas and prox1 != "":
             key = ("erro tarde", dia)
-            erro = combos["erro tarde"]
             if key not in seen_errors:
-                adicionarErros(escala, erro, dia)
+                erros.append({
+                    "Nome": escala.get("Nome"),
+                    "Dia": dia,
+                    "Erro": combos["erro tarde"]
+                })
                 seen_errors.add(key)
-    #checa se todos os turnos digitados existem
-    for turno_procurado in turnos_possiveis.values():
-        if turno_atual in turno_procurado:
-                break
-    else:
-            erro = f"Turno {turno_atual} não existe"
-            adicionarErros(escala,erro,dia)
 
-    return st.session_state.df_erros
+    return erros
+
+def verificarFadiga_escala(escalas):
+    """
+    Recebe lista de escalas (list[dict]).
+    Retorna lista de erros.
+    """
+    erros = []
+    for esc in escalas:
+        erros.extend(verificarFadiga_pura(esc))
+    return erros
+

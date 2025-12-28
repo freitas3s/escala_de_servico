@@ -1,4 +1,4 @@
-from verificarFadiga import verificarFadiga, limparErros, verificarCargaHoraria, adicionarErros
+from verificarFadiga import verificarFadiga_escala, limparErros, verificarCargaHoraria, adicionarErros
 from copiarEscalaDrive import copiarEscala, gerar_colunas_com_dia_semana, MESES
 import streamlit as st
 import pandas as pd
@@ -6,33 +6,73 @@ import datetime
 
 st.set_page_config(page_title="Escala", layout="wide")
 
-def aplicar_troca(df, operador_a, operador_b, dia):
-    col = f"D{dia}"
-
-    turno_a = df.loc[df["Operador"] == operador_a, col].values[0]
-    turno_b = df.loc[df["Operador"] == operador_b, col].values[0]
-
-    df.loc[df["Operador"] == operador_a, col] = turno_b
-    df.loc[df["Operador"] == operador_b, col] = turno_a
-
-def listar_candidatos(df, operador_origem):
-    return df[df["Operador"] != operador_origem]["Operador"].tolist()
-
-def encontrar_trocas_possiveis(df, operador, dia):
+def listar_trocas_simples(df, nome_operador, coluna_dia):
     trocas_validas = []
-    candidatos = listar_candidatos(df, operador)
 
-    for candidato in candidatos:
-        df_simulado = df.copy(deep=True)
+    for candidato in df["Nome"]:
+        if candidato == nome_operador:
+            continue
 
-        aplicar_troca(df_simulado, operador, candidato, dia)
+        df_sim = df.copy(deep=True)
+        aplicar_troca_df(df_sim, nome_operador, candidato, coluna_dia)
 
-        erros = verificarFadiga(df_simulado)
+        escalas_sim = df_para_escalas(df_sim)
+        erros = verificarFadiga_escala(escalas_sim)
 
         if not erros:
             trocas_validas.append(candidato)
 
     return trocas_validas
+
+def buscar_cadeias(df, operador_atual, operador_origem, coluna_dia, caminho, profundidade):
+    if profundidade == 0:
+        return []
+
+    resultados = []
+
+    for candidato in df["Nome"]:
+        if candidato == operador_atual:
+            continue
+
+        df_sim = df.copy(deep=True)
+        aplicar_troca_df(df_sim, operador_atual, candidato, coluna_dia)
+
+        escalas_sim = df_para_escalas(df_sim)
+        erros = verificarFadiga_escala(escalas_sim)
+
+        if erros:
+            continue
+
+        novo_caminho = caminho + [(operador_atual, candidato)]
+
+        turno_original = df.loc[df["Nome"] == operador_origem, coluna_dia].values[0]
+        turno_atual = df_sim.loc[df_sim["Nome"] == operador_origem, coluna_dia].values[0]
+
+        if turno_atual != turno_original:
+            resultados.append(novo_caminho)
+        else:
+            resultados += buscar_cadeias(
+                df_sim,
+                candidato,
+                operador_origem,
+                coluna_dia,
+                novo_caminho,
+                profundidade - 1
+            )
+
+    return resultados
+
+
+def aplicar_troca_df(df, nome_a, nome_b, coluna_dia):
+    idx_a = df[df["Nome"] == nome_a].index[0]
+    idx_b = df[df["Nome"] == nome_b].index[0]
+
+    turno_a = df.at[idx_a, coluna_dia]
+    turno_b = df.at[idx_b, coluna_dia]
+
+    df.at[idx_a, coluna_dia] = turno_b
+    df.at[idx_b, coluna_dia] = turno_a
+
 
 # ----------------------
 # Helpers / utilitários
@@ -196,7 +236,7 @@ def executar_verificacao():
 
     limparErros()
     for esc in st.session_state.escalas:
-        verificarFadiga(esc)
+        verificarFadiga_escala(esc)
         carga_horaria = verificarCargaHoraria(esc)
         try:
             carga_horaria_maxima = float(esc.get("CHM", 0))
@@ -312,33 +352,32 @@ if not st.session_state.df_erros.empty:
     st.dataframe(st.session_state.df_erros, use_container_width=True, hide_index=True)
 
 
-st.title("🔄 Simulador de Trocas de Turno")
+st.header("🔄 Simulador de Trocas")
 
-st.dataframe(st.session_state.df_escala, use_container_width=True)
+df_base = st.session_state.df_escalas
 
-st.subheader("Selecionar turno para troca")
-
-operador_selecionado = st.selectbox(
-    "Operador",
-    st.session_state.df_escala["Operador"].tolist()
-)
-
-dia_selecionado = st.selectbox(
+coluna_dia = st.selectbox(
     "Dia",
-    list(range(1, 32))
+    [c for c in df_base.columns if c not in ("Nome", "CHM")]
 )
 
-if st.button("🔍 Ver trocas possíveis"):
-    trocas = encontrar_trocas_possiveis(
-        st.session_state.df_escala,
-        operador_selecionado,
-        dia_selecionado
-    )
+operador = st.selectbox(
+    "Operador",
+    df_base["Nome"].tolist()
+)
 
-    if trocas:
-        st.success("Trocas possíveis encontradas:")
-        st.table(pd.DataFrame({
-            "Pode trocar com": trocas
-        }))
+if st.button("Buscar troca simples"):
+    trocas = listar_trocas_simples(df_base, operador, coluna_dia)
+    st.write(trocas)
+
+if st.button("Buscar troca em cadeia (até 2)"):
+    with st.spinner("Buscando cadeias..."):
+        cadeias = buscar_cadeias(df_base, operador, operador, coluna_dia, [], 2)
+
+    if cadeias:
+        for i, cadeia in enumerate(cadeias, 1):
+            st.markdown(f"**Cadeia {i}:**")
+            for a, b in cadeia:
+                st.write(f"{a} ↔ {b}")
     else:
-        st.warning("Nenhuma troca possível sem violar fadiga.")
+        st.warning("Nenhuma cadeia encontrada")
