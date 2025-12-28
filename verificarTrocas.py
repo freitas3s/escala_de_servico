@@ -35,14 +35,13 @@ def encontrar_trocas_possiveis(df, operador, dia):
 
 st.title("🔄 Simulador de Trocas de Turno")
 
-df_escala = st.session_state.df_escala
-st.dataframe(df_escala, use_container_width=True)
+st.dataframe(st.sessionstate.df_escala, use_container_width=True)
 
 st.subheader("Selecionar turno para troca")
 
 operador_selecionado = st.selectbox(
     "Operador",
-    df_escala["Operador"].tolist()
+    st.sessionstate.df_escala["Operador"].tolist()
 )
 
 dia_selecionado = st.selectbox(
@@ -52,7 +51,7 @@ dia_selecionado = st.selectbox(
 
 if st.button("🔍 Ver trocas possíveis"):
     trocas = encontrar_trocas_possiveis(
-        df_escala,
+        st.sessionstate.df_escala,
         operador_selecionado,
         dia_selecionado
     )
