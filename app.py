@@ -1,7 +1,7 @@
 import streamlit as st
 pg = st.navigation([
     st.Page("main.py", title="Home"),
-    st.Page("verificar_trocas.py", title="Verificar Trocas"),
+    st.Page("verificarTrocas.py", title="Verificar Trocas"),
 
 ],
     position = "top"
