@@ -1,8 +1,7 @@
 import streamlit as st
 import pandas as pd
 import copy
-from verificarFadiga import verificarFadiga
-
+from verificarFadiga import verificarFadiga_pura
 
 def aplicar_troca(df, operador_a, operador_b, dia):
     col = f"D{dia}"
@@ -25,7 +24,7 @@ def encontrar_trocas_possiveis(df, operador, dia):
 
         aplicar_troca(df_simulado, operador, candidato, dia)
 
-        erros = verificarFadiga(df_simulado)
+        erros = verificarFadiga_pura(df_simulado)
 
         if not erros:
             trocas_validas.append(candidato)
