@@ -399,7 +399,7 @@ operador_selecionado = st.selectbox(
 
 dia_selecionado = st.selectbox(
     "Dia",
-    list(range(1, 32))
+    gerar_colunas_com_dia_semana(st.session_state.ano,st.session_state.mes)
 )
 
 if st.button("🔍 Ver trocas possíveis"):
