@@ -3,6 +3,18 @@ import pandas as pd
 import copy
 from verificarFadiga import verificarFadiga_pura
 
+if "df_escalas" not in st.session_state:
+    st.session_state.df_escalas = pd.DataFrame()
+if "df_filtrado" not in st.session_state:
+    st.session_state.df_filtrado = pd.DataFrame()
+if "filtro_ativo" not in st.session_state:
+    st.session_state.filtro_ativo = False
+if "df_erros" not in st.session_state:
+    st.session_state.df_erros = pd.DataFrame(columns=["Nome", "Dia", "Erro"])
+if "mostrar_tabela" not in st.session_state:
+    st.session_state.mostrar_tabela = False
+
+
 def aplicar_troca(df, operador_a, operador_b, dia):
     col = f"D{dia}"
 
