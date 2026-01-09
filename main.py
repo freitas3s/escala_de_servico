@@ -392,7 +392,7 @@ st.subheader("Selecionar turno para troca")
 
 operador_selecionado = st.selectbox(
     "Operador",
-    st.session_state.escalas["Operador"].tolist()
+    st.session_state.escalas["Operador"].get()
 )
 
 dia_selecionado = st.selectbox(
