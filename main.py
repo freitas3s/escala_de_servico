@@ -388,11 +388,13 @@ st.title("🔄 Simulador de Trocas de Turno")
 if "df_escalas" not in st.session_state:
     st.session_state.df_escalas = pd.DataFrame()
 
+st.dataframe(st.session_state.df_escalas, use_container_width=True)
+
 st.subheader("Selecionar turno para troca")
 
 operador_selecionado = st.selectbox(
     "Operador",
-    st.session_state.escalas["Operador"].get()
+    st.session_state.df_escalas["Operador"].tolist()
 )
 
 dia_selecionado = st.selectbox(
@@ -402,7 +404,7 @@ dia_selecionado = st.selectbox(
 
 if st.button("🔍 Ver trocas possíveis"):
     trocas = encontrar_trocas_possiveis(
-        st.session_state.df_escala,
+        st.session_state.df_escalas,
         operador_selecionado,
         dia_selecionado
     )
