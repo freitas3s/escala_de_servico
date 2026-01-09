@@ -403,7 +403,7 @@ dia_selecionado = st.selectbox(
 )
 
 if st.button("🔍 Ver trocas possíveis"):
-    trocas = encontrar_trocas_possiveis(
+    trocas = listar_trocas_simples(
         st.session_state.df_escalas,
         operador_selecionado,
         dia_selecionado
