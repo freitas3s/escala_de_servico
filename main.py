@@ -9,7 +9,7 @@ st.set_page_config(page_title="Escala", layout="wide")
 
 
 def aplicar_troca(df, operador_a, operador_b, dia):
-    col = f"{dia} Ter"
+    col = f"{dia}"
 
     turno_a = df.loc[df["Nome"] == operador_a, col].values[0]
     turno_b = df.loc[df["Nome"] == operador_b, col].values[0]
