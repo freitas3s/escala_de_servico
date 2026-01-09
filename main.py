@@ -413,13 +413,13 @@ if st.button("Buscar troca em cadeia (até 2)"):
         st.warning("Nenhuma cadeia encontrada")
 
 
-st.dataframe(st.session_state.df_escala, use_container_width=True)
+st.dataframe(st.session_state.df_escalas, use_container_width=True)
 
 st.subheader("Selecionar turno para troca")
 
 operador_selecionado = st.selectbox(
     "Operador",
-    st.session_state.df_escala["Operador"].tolist()
+    st.session_state.df_escalas["Operador"].tolist()
 )
 
 dia_selecionado = st.selectbox(
