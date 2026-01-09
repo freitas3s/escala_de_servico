@@ -388,13 +388,11 @@ st.title("🔄 Simulador de Trocas de Turno")
 if "df_escalas" not in st.session_state:
     st.session_state.df_escalas = pd.DataFrame()
 
-st.dataframe(st.session_state.df_escala, use_container_width=True)
-
 st.subheader("Selecionar turno para troca")
 
 operador_selecionado = st.selectbox(
     "Operador",
-    st.session_state.df_escala["Operador"].tolist()
+    st.session_state.escalas["Operador"].tolist()
 )
 
 dia_selecionado = st.selectbox(
