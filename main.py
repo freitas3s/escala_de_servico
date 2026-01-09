@@ -396,7 +396,7 @@ operador_selecionado = st.selectbox(
     "Operador",
     st.session_state.df_escalas["Operador"].tolist()
 )
-
+st.write(st.session_state.df_escalas)
 dia_selecionado = st.selectbox(
     "Dia",
     list(range(1, 32))
