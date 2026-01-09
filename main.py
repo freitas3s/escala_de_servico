@@ -382,44 +382,19 @@ if not st.session_state.df_erros.empty:
     st.dataframe(st.session_state.df_erros, use_container_width=True, hide_index=True)
 
 
-st.header("🔄 Simulador de Trocas")
 
-df_base = st.session_state.df_escalas
+st.title("🔄 Simulador de Trocas de Turno")
 
-coluna_dia = st.selectbox(
-    "Dia",
-    [c for c in df_base.columns if c not in ("Nome", "CHM")]
-)
+if "df_escalas" not in st.session_state:
+    st.session_state.df_escalas = pd.DataFrame()
 
-operador = st.selectbox(
-    "Operador",
-    df_base["Nome"].tolist()
-)
-
-if st.button("Buscar troca simples"):
-    trocas = listar_trocas_simples(df_base, operador, coluna_dia)
-    st.write(trocas)
-
-if st.button("Buscar troca em cadeia (até 2)"):
-    with st.spinner("Buscando cadeias..."):
-        cadeias = buscar_cadeias(df_base, operador, operador, coluna_dia, [], 2)
-
-    if cadeias:
-        for i, cadeia in enumerate(cadeias, 1):
-            st.markdown(f"**Cadeia {i}:**")
-            for a, b in cadeia:
-                st.write(f"{a} ↔ {b}")
-    else:
-        st.warning("Nenhuma cadeia encontrada")
-
-
-st.dataframe(st.session_state.df_escalas, use_container_width=True)
+st.dataframe(st.session_state.df_escala, use_container_width=True)
 
 st.subheader("Selecionar turno para troca")
 
 operador_selecionado = st.selectbox(
     "Operador",
-    st.session_state.df_escalas["Operador"].tolist()
+    st.session_state.df_escala["Operador"].tolist()
 )
 
 dia_selecionado = st.selectbox(
