@@ -1,10 +1,40 @@
-from verificarFadiga import verificarFadiga_escala, limparErros, verificarCargaHoraria, adicionarErros
+from verificarFadiga import *
 from copiarEscalaDrive import copiarEscala, gerar_colunas_com_dia_semana, MESES
 import streamlit as st
 import pandas as pd
 import datetime
 
 st.set_page_config(page_title="Escala", layout="wide")
+
+
+
+def aplicar_troca(df, operador_a, operador_b, dia):
+    col = f"D{dia}"
+
+    turno_a = df.loc[df["Operador"] == operador_a, col].values[0]
+    turno_b = df.loc[df["Operador"] == operador_b, col].values[0]
+
+    df.loc[df["Operador"] == operador_a, col] = turno_b
+    df.loc[df["Operador"] == operador_b, col] = turno_a
+
+def listar_candidatos(df, operador_origem):
+    return df[df["Operador"] != operador_origem]["Operador"].tolist()
+
+def encontrar_trocas_possiveis(df, operador, dia):
+    trocas_validas = []
+    candidatos = listar_candidatos(df, operador)
+
+    for candidato in candidatos:
+        df_simulado = df.copy(deep=True)
+
+        aplicar_troca(df_simulado, operador, candidato, dia)
+
+        erros = verificarFadiga_pura(df_simulado)
+
+        if not erros:
+            trocas_validas.append(candidato)
+
+    return trocas_validas
 
 def listar_trocas_simples(df, nome_operador, coluna_dia):
     trocas_validas = []
@@ -381,3 +411,33 @@ if st.button("Buscar troca em cadeia (até 2)"):
                 st.write(f"{a} ↔ {b}")
     else:
         st.warning("Nenhuma cadeia encontrada")
+
+
+st.dataframe(st.session_state.df_escala, use_container_width=True)
+
+st.subheader("Selecionar turno para troca")
+
+operador_selecionado = st.selectbox(
+    "Operador",
+    st.session_state.df_escala["Operador"].tolist()
+)
+
+dia_selecionado = st.selectbox(
+    "Dia",
+    list(range(1, 32))
+)
+
+if st.button("🔍 Ver trocas possíveis"):
+    trocas = encontrar_trocas_possiveis(
+        st.session_state.df_escala,
+        operador_selecionado,
+        dia_selecionado
+    )
+
+    if trocas:
+        st.success("Trocas possíveis encontradas:")
+        st.table(pd.DataFrame({
+            "Pode trocar com": trocas
+        }))
+    else:
+        st.warning("Nenhuma troca possível sem violar fadiga.")
