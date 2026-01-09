@@ -11,14 +11,14 @@ st.set_page_config(page_title="Escala", layout="wide")
 def aplicar_troca(df, operador_a, operador_b, dia):
     col = f"D{dia}"
 
-    turno_a = df.loc[df["Operador"] == operador_a, col].values[0]
-    turno_b = df.loc[df["Operador"] == operador_b, col].values[0]
+    turno_a = df.loc[df["Nome"] == operador_a, col].values[0]
+    turno_b = df.loc[df["Nome"] == operador_b, col].values[0]
 
-    df.loc[df["Operador"] == operador_a, col] = turno_b
-    df.loc[df["Operador"] == operador_b, col] = turno_a
+    df.loc[df["Nome"] == operador_a, col] = turno_b
+    df.loc[df["Nome"] == operador_b, col] = turno_a
 
 def listar_candidatos(df, operador_origem):
-    return df[df["Operador"] != operador_origem]["Operador"].tolist()
+    return df[df["Nome"] != operador_origem]["Nome"].tolist()
 
 def encontrar_trocas_possiveis(df, operador, dia):
     trocas_validas = []
